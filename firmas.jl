@@ -10,11 +10,30 @@ using Statistics
 using Flux
 using Flux.Losses
 
+#feature -> vector con los valores de un atributo o salida deseada para cada patron (ven sendo targets)
+#classes -> valores de las categorias
 
 function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
+    unique_classes = unique(classes);
+    numClasses = length(unique_classes);
+    if numClasses<=2
+        # Si solo hay dos clases, se genera una matriz con una columna
+        oneHot = reshape(feature.==unique_classes[1], :, 1);
+    else
+        # Si hay mas de dos clases se genera una matriz con una columna por clase
+
+        oneHot = BitArray{2}(undef, size(feature,1), numClasses);
+        for numClass = 1:numClasses
+            oneHot[:,numClass] .= (feature.==unique_classes[numClass]);
+        end;
+
+        #### Puxen o sin bucles porque me parecia mas facil de entender, despos xa miramos cal renta mas ####
+
+        # Una forma de hacerlo sin bucles sería la siguiente:
+        # oneHot = convert(BitArray{2}, hcat([instance.==classes for instance in targets]...)');
+        # targets = oneHot;
+    end;
+    return oneHot;
 end;
 
 function oneHotEncoding(feature::AbstractArray{<:Any,1})
