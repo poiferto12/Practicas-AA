@@ -49,15 +49,32 @@ function oneHotEncoding(feature::AbstractArray{Bool,1})
 end;
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    inputs = dataset[:,1:4];
+    # Con cualquiera de estas 3 maneras podemos convertir la matriz de entradas de tipo Array{Any,2} en Array{Float32,2}, si los valores son numéricos:
+    inputs = Float64.(inputs);
+    # Primero calculamos los valores de normalizacion
+    normalizationParameters = (minimum(inputs, dims=1), maximum(inputs, dims=1));
+    # Despues los leemos de esa tupla
+    minValues = normalizationParameters[1];
+    maxValues = normalizationParameters[2];
+    # En realidad, no es necesario crear la tupla con los parámetros de normalización, se podrían calcular directamente los valores máximo y mínimo sin almacenarlos en una tupla
+    #  Esto se hace así para que, al tenerlo como una tupla, sea más sencillo pasarla a una función, como exige el ejercicio siguiente
+    # Finalmente, los aplicamos
+    inputs .-= minValues;
+    inputs ./= (maxValues .- minValues);
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(minValues.==maxValues)] .= 0;
 end;
 
 function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+   # Dejamos aqui indicado como se haria para normalizar mediante media y desviacion tipica
+    normalizationParameters = (mean(inputs, dims=1), std(inputs, dims=1));
+    avgValues = normalizationParameters[1];
+    stdValues = normalizationParameters[2];
+    inputs .-= avgValues;
+    inputs ./= stdValues;
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(stdValues.==0)] .= 0;
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
@@ -333,6 +350,3 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, dat
     # Codigo a desarrollar
     #
 end;
-
-
-
