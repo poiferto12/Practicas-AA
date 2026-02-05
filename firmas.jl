@@ -36,16 +36,12 @@ function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{
     return oneHot;
 end;
 
-function oneHotEncoding(feature::AbstractArray{<:Any,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature));
+### Esta funcion nn tou seuguro de que te ben, pide non usar function e esto é o unico que lle vexo sentido e non me salta errores xd, despos proboa ###
 
 function oneHotEncoding(feature::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
+    return reshape(feature, :, 1);
+    ### Ven sendo usar o de arriba, pero quitando o unique_classes ###
 end;
 
 function calculateMinMaxNormalizationParameters(dataset::AbstractArray{<:Real,2})
