@@ -55,15 +55,23 @@ function calculateZeroMeanNormalizationParameters(dataset::AbstractArray{<:Real,
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    minValues, maxValues = normalizationParameters;
+    # Se modifican los datos originales
+    inputs .-= minValues;
+    inputs ./= (maxValues .- minValues);
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(minValues.==maxValues)] .= 0;
+    return inputs;
 end;
 
 function normalizeMinMax!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    minValues, maxValues = calculateMinMaxNormalizationParameters(dataset);
+    # Se modifican los datos originales
+    inputs .-= minValues;
+    inputs ./= (maxValues .- minValues);
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(minValues.==maxValues)] .= 0;
+    return inputs;
 end;
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
@@ -73,21 +81,32 @@ function normalizeMinMax(dataset::AbstractArray{<:Real,2}, normalizationParamete
 end;
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    minValues, maxValues = calculateMinMaxNormalizationParameters(dataset);
+    # Copy para no modificar los datos originales
+    inputs = copy(dataset);
+    inputs .-= minValues;
+    inputs ./= (maxValues .- minValues);
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(minValues.==maxValues)] .= 0;
+    return inputs;
 end;
 
 function normalizeZeroMean!(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues, stdValues = normalizationParameters;
+    inputs .-= avgValues;
+    inputs ./= stdValues;
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(stdValues.==0)] .= 0;
+    return inputs;
 end;
 
 function normalizeZeroMean!(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues, stdValues = calculateZeroMeanNormalizationParameters(dataset);
+    inputs .-= avgValues;
+    inputs ./= stdValues;
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(stdValues.==0)] .= 0;
+    return inputs;
 end;
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
@@ -97,9 +116,14 @@ function normalizeZeroMean(dataset::AbstractArray{<:Real,2}, normalizationParame
 end;
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues, stdValues = calculateZeroMeanNormalizationParameters(dataset);
+    # Copy para no modificar los datos originales
+    inputs = copy(dataset);
+    inputs .-= avgValues;
+    inputs ./= stdValues;
+    # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
+    inputs[:, vec(stdValues.==0)] .= 0;
+    return inputs;
 end;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
