@@ -139,27 +139,37 @@ function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
+    # Calcula la proporción de aciertos comparando salidas y objetivos
+    return mean(targets .== outputs);
 end;
 
 function accuracy(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2})
-    #
-    # Codigo a desarrollar
-    #
+    # Calcula la accuracy para salidas booleanas en forma matricial
+    if size(outputs,2) == 1
+        # Caso binario
+        return accuracy(outputs[:,1], targets[:,1]);
+    elseif size(outputs, 2) > 2
+        # Caso multiclase
+        return mean(all(outputs .== targets, dims=2));
+    end;
 end;
 
 function accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    # Convierte salidas reales a booleanas usando un umbral y calcula la accuracy
+    binary_outputs = classifyOutputs(outputs, threshold=threshold);
+    return accuracy(binary_outputs, targets);
 end;
 
 function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    # Calcula la accuracy para salidas reales en formato matricial
+    if size(outputs,2) == 1
+        # Caso binario
+        return accuracy(outputs[:,1], targets[:,1], threshold=threshold);
+    else
+        # Caso multiclase
+        binary_outputs = classifyOutputs(outputs, threshold=threshold);
+        return accuracy(binary_outputs, targets);
+    end;
 end;
 
 function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutputs::Int; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)))
