@@ -181,11 +181,11 @@ function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutp
         numInputsLayer = numOutputsLayer;
         i += 1;
     end; 
-    if (numOutputs > 2); ### Teño un pouco de dudas con este trozo, pero ao probar co archivo de ejecucion non me salta error, quero pensar que está ben ###
+    if (numOutputs > 2); 
         ann = Chain(ann..., Dense(numInputsLayer, numOutputs, identity));
         ann = Chain(ann..., softmax);        
-    else
-        ann = Chain(ann..., Dense(numInputsLayer, 1, transferFunctions[i]));
+    else        ### Ahora funciona ben con 2 ou menos. i ao salir do bucle tiña leght(topology) + 1 como valor e transferFunctions[] solo ten length(top..) elementos, de ahi o BoundsError, intentaba acceder ao 4 cando solo tiña 3 elementos ###
+        ann = Chain(ann..., Dense(numInputsLayer, 1, σ));
     end
     return ann;
 end;
