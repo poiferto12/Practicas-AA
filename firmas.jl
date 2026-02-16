@@ -210,9 +210,15 @@ end;
 using Random
 
 function holdOut(N::Int, P::Real)
-    #
-    # Codigo a desarrollar
-    #
+    @assert (P >= 0.0) && (P <= 1.0) "P debe estar entre 0 y 1";
+    # Permutación aleatoria de los índices 1..N
+    indices = randperm(N);
+    # Número de patrones de entrenamiento
+    numTrainingInstances = Int(round(N * (1 - P)));
+    # Separamos los índices en entrenamiento y test
+    trainingIdx = indices[1:numTrainingInstances];
+    testIdx = indices[numTrainingInstances+1:end];
+    return trainingIdx, testIdx;
 end;
 
 function holdOut(N::Int, Pval::Real, Ptest::Real)
