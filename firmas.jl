@@ -75,9 +75,13 @@ function normalizeMinMax!(dataset::AbstractArray{<:Real,2})
 end;
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    minValues, maxValues = normalizationParameters;
+    # Copy para no modificar los datos originales
+    dataset = copy(dataset);
+    dataset .-= minValues;
+    dataset ./= (maxValues .- minValues);
+    dataset[:, vec(minValues.==maxValues)] .= 0;
+    return dataset;
 end;
 
 function normalizeMinMax(dataset::AbstractArray{<:Real,2})
@@ -110,9 +114,13 @@ function normalizeZeroMean!(dataset::AbstractArray{<:Real,2})
 end;
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2}, normalizationParameters::NTuple{2, AbstractArray{<:Real,2}})
-    #
-    # Codigo a desarrollar
-    #
+    avgValues, stdValues = normalizationParameters;
+    # Copy para no modificar los datos originales
+    dataset = copy(dataset);
+    dataset .-= avgValues;
+    dataset ./= stdValues;
+    dataset[:, vec(stdValues.==0)] .= 0;
+    return dataset;
 end;
 
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
@@ -127,15 +135,13 @@ function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
 end;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    # Devuelve un vector booleano: true si output es >= que threshold y false si no lo es
+    return outputs .>=threshold 
 end;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    # Devuelve una matriz booleana: true si output es >= que threshold y false si no lo es
+    return outputs .>=threshold
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
