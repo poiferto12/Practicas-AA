@@ -9,6 +9,7 @@
 using Statistics
 using Flux
 using Flux.Losses
+using Flux: σ
 
 #feature -> vector con los valores de un atributo o salida deseada para cada patron (ven sendo targets)
 #classes -> valores de las categorias
@@ -140,8 +141,17 @@ function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
 end;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    # Devuelve una matriz booleana: true si output es >= que threshold y false si no lo es
-    return outputs .>=threshold
+    # Si tiene 1 columna: aplica threshold
+    # Si tiene >1 columna: selecciona el máximo de cada fila
+    if size(outputs, 2) == 1;
+        return outputs .>= threshold;
+    else;
+        classifiedOutputs = falses(size(outputs));
+        for i in 1:size(outputs, 1);
+            classifiedOutputs[i, argmax(outputs[i, :])] = true;
+        end;
+        return classifiedOutputs;
+    end;
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
@@ -197,15 +207,32 @@ function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutp
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
-    #
-    # Codigo a desarrollar
-    #
+    inputs = Float32.(dataset[1]);
+    targets = dataset[2];
+    ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
+
+    ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
+    if (size(targets, 2) == 1);
+        loss(x,y) = Losses.binarycrossentropy(ann(x),y);
+    else;
+        loss(x,y) = Losses.crossentropy(ann(x),y);
+    end;
+
+    ###Este é o vector cos valores de loss en cada ciclo ###
+    lossValues = zeros(Float32, maxEpochs+1);
+    lossValues[1] = loss(inputs', targets');
+
+    currentEpoch = 1;
+    while (currentEpoch <= maxEpochs) && (lossValues[currentEpoch] > minLoss);
+        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], ADAM(learningRate));
+        lossValues[currentEpoch+1] = loss(inputs', targets');
+        currentEpoch += 1;
+    end;
+    return (ann, lossValues);
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1}, (inputs, targets)::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}; transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)), maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01)
-    #
-    # Codigo a desarrollar
-    #
+    return trainClassANN(topology, (inputs, reshape(targets, (:,1))); transferFunctions=transferFunctions, maxEpochs=maxEpochs, minLoss=minLoss, learningRate=learningRate);
 end;
 
 
