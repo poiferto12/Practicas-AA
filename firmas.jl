@@ -266,9 +266,95 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     testDataset::      Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}=(Array{eltype(trainingDataset[1]),2}(undef,0,size(trainingDataset[1],2)), falses(0,size(trainingDataset[2],2))),
     transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01, maxEpochsVal::Int=20)
-    #
-    # Codigo a desarrollar
-    #
+   
+    inputs, targets = Float32.(trainingDataset[1]), trainingDataset[2];
+    validation_inputs, validation_targets = Float32.(validationDataset[1]), validationDataset[2];
+    test_inputs, test_targets = Float32.(testDataset[1]), testDataset[2];
+
+    # Comprobar si están vacíos
+    validation_empty = size(validation_inputs, 1) == 0;
+    test_empty = size(test_inputs, 1) == 0;
+
+    ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
+
+     ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
+    if (size(targets, 2) == 1);
+        loss(x,y) = Losses.binarycrossentropy(ann(x),y);
+    else;
+        loss(x,y) = Losses.crossentropy(ann(x),y);
+    end;
+
+    trainLosses = Float32[];
+    validationLosses = Float32[];
+    testLosses = Float32[];
+
+    # Cálculo loss ciclo 0
+    push!(trainLosses, Float32(loss(inputs', targets')));
+
+    # Si validation_empty, validationLosses se queda vacío
+    if !validation_empty
+        push!(validationLosses, Float32(loss(validation_inputs', validation_targets')));
+    end
+
+    # Si test_empty, testLosses se queda vacío
+    if !test_empty
+        push!(testLosses, Float32(loss(test_inputs', test_targets')));
+    end
+
+    best_ann = deepcopy(ann);
+    best_validationLoss = validation_empty ? Inf : validationLosses[1];
+    nEpochs_without_improve = 0;
+    currentEpoch = 1;
+
+    while currentEpoch <= maxEpochs
+        # Training de un ciclo
+        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], ADAM(learningRate));
+
+        # Cálculo loss de training
+        current_trainLoss = Float32(loss(inputs', targets'));
+        push!(trainLosses, current_trainLoss)
+        
+        # Cálculo loss de validacion
+        if !validation_empty
+            current_validationLoss = Float32(loss(validation_inputs', validation_targets'));
+            push!(validationLosses, current_validationLoss);
+            
+            # Comprueba si hay mejora de validación
+            if current_validationLoss < best_validationLoss
+                best_validationLoss = current_validationLoss
+                best_ann = deepcopy(ann)
+                nEpochs_without_improve = 0
+            else
+                nEpochs_without_improve += 1
+            end
+        end
+        
+        # Cálculo loss de test
+        if !test_empty
+            current_testLoss = Float32(loss(test_inputs', test_targets'));
+            push!(testLosses, current_testLoss);
+        end
+
+        # Para por alcanzar la pérdida mínima
+        if current_trainLoss <= minLoss
+            break
+        end
+
+        # Parada temprana por validación
+        if !validation_empty && nEpochs_without_improve >= maxEpochsVal
+            break
+        end
+
+        currentEpoch += 1
+    end
+
+    if !validation_empty
+        ann = best_ann  # Se devuelve la mejor RNA según validación
+    end
+
+    return (ann, trainLosses, validationLosses, testLosses);
+
+
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1},
