@@ -141,17 +141,15 @@ function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5)
 end;
 
 function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    # Si tiene 1 columna: aplica threshold
-    # Si tiene >1 columna: selecciona el máximo de cada fila
-    if size(outputs, 2) == 1;
-        return outputs .>= threshold;
-    else;
-        classifiedOutputs = falses(size(outputs));
-        for i in 1:size(outputs, 1);
-            classifiedOutputs[i, argmax(outputs[i, :])] = true;
-        end;
-        return classifiedOutputs;
+    ### Ahora deberia de funcionar correcto segun o que se pide no enunciado ###
+    if(size(outputs,2) == 1);
+        outputs = (outputs .>= threshold);
+    else
+        (_, indicesMaxEachInstance) = findmax(outputs, dims=2);
+        outputs = falses(size(outputs));
+        outputs[indicesMaxEachInstance] .= true;
     end;
+    return outputs;
 end;
 
 function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
@@ -202,7 +200,7 @@ function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutp
         ann = Chain(ann..., softmax);        
     else        ### Ahora funciona ben con 2 ou menos. i ao salir do bucle tiña leght(topology) + 1 como valor e transferFunctions[] solo ten length(top..) elementos, de ahi o BoundsError, intentaba acceder ao 4 cando solo tiña 3 elementos ###
         ann = Chain(ann..., Dense(numInputsLayer, 1, σ));
-    end
+    end;
     return ann;
 end;
 
@@ -212,19 +210,20 @@ function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{Abstract
     ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
 
     ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
-    if (size(targets, 2) == 1);
-        loss(x,y) = Losses.binarycrossentropy(ann(x),y);
-    else;
-        loss(x,y) = Losses.crossentropy(ann(x),y);
-    end;
+    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o error de antes ###
+    loss(x,y) = (size(targets, 2) == 1) ? 
+        (Losses.binarycrossentropy(ann(x),y)) : 
+        (Losses.crossentropy(ann(x),y));
 
     ###Este é o vector cos valores de loss en cada ciclo ###
     lossValues = zeros(Float32, maxEpochs+1);
     lossValues[1] = loss(inputs', targets');
 
+    ### Parece que habia que crear o Adam 1 sola vez, antes faciase en cada epoch ###
+    opt = Flux.Optimise.Adam(learningRate);
     currentEpoch = 1;
     while (currentEpoch <= maxEpochs) && (lossValues[currentEpoch] > minLoss);
-        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], ADAM(learningRate));
+        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], opt);
         lossValues[currentEpoch+1] = loss(inputs', targets');
         currentEpoch += 1;
     end;
@@ -277,12 +276,11 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
 
     ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
 
-     ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
-    if (size(targets, 2) == 1);
-        loss(x,y) = Losses.binarycrossentropy(ann(x),y);
-    else;
-        loss(x,y) = Losses.crossentropy(ann(x),y);
-    end;
+    ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
+    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o error de antes ###
+    loss(x,y) = (size(targets, 2) == 1) ? 
+        (Losses.binarycrossentropy(ann(x),y)) : 
+        (Losses.crossentropy(ann(x),y));
 
     trainLosses = Float32[];
     validationLosses = Float32[];
@@ -306,9 +304,12 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     nEpochs_without_improve = 0;
     currentEpoch = 1;
 
+    ### Parece que habia que crear o Adam 1 sola vez, antes faciase en cada epoch ###
+    opt = Flux.Optimise.Adam(learningRate);
+
     while currentEpoch <= maxEpochs
         # Training de un ciclo
-        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], ADAM(learningRate));
+        Flux.train!(loss, Flux.params(ann), [(inputs', targets')], opt);
 
         # Cálculo loss de training
         current_trainLoss = Float32(loss(inputs', targets'));
@@ -363,10 +364,18 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     testDataset::      Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}=(Array{eltype(trainingDataset[1]),2}(undef,0,size(trainingDataset[1],2)), falses(0)),
     transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01, maxEpochsVal::Int=20)
-    #
-    # Codigo a desarrollar
-    #
+    
+    ### Fixen esto asi porque non teño muy claro se o que estaba intentando poñer antes estaba ben ou se era una sachada jajaj###
+    return trainClassANN(topology, (trainingDataset[1], reshape(trainingDataset[2], :, 1));
+        validationDataset = (validationDataset[1], reshape(validationDataset[2], :, 1)),
+        testDataset = (testDataset[1], reshape(testDataset[2], :, 1)),
+        transferFunctions = transferFunctions,
+        maxEpochs = maxEpochs,
+        minLoss = minLoss,
+        learningRate = learningRate,
+        maxEpochsVal = maxEpochsVal);
 end;
+
 
 
 
