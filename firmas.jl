@@ -254,9 +254,19 @@ function holdOut(N::Int, P::Real)
 end;
 
 function holdOut(N::Int, Pval::Real, Ptest::Real)
-    #
-    # Codigo a desarrollar
-    #
+    # Test
+    trainingValIdx, testIdx = holdOut(N, Ptest)
+    # Calculamos la proporción ajustada para validación
+    nTrainingVal = length(trainingValIdx)
+    # Número de patrones de entrenamiento
+    nVal = Int(round(N * Pval))
+    PvalAdjusted = nVal / nTrainingVal
+    # Validación
+    trainingIdx, valIdx = holdOut(nTrainingVal, PvalAdjusted)
+    # Mapeamos los índices de trainingIdx y valIdx al original
+    trainingIdx = trainingValIdx[trainingIdx]
+    valIdx = trainingValIdx[valIdx]
+    return(trainingIdx, valIdx, testIdx);
 end;
 
 function trainClassANN(topology::AbstractArray{<:Int,1},
