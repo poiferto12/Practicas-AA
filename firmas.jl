@@ -127,7 +127,7 @@ end;
 function normalizeZeroMean(dataset::AbstractArray{<:Real,2})
     avgValues, stdValues = calculateZeroMeanNormalizationParameters(dataset);
     # Copy para no modificar los datos originales
-    datasets = copy(dataset);
+    dataset = copy(dataset);
     dataset .-= avgValues;
     dataset ./= stdValues;
     # Si hay algun atributo en el que todos los valores son iguales, se pone a 0
