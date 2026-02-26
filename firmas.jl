@@ -38,7 +38,7 @@ function oneHotEncoding(feature::AbstractArray{<:Any,1}, classes::AbstractArray{
 end;
 
 oneHotEncoding(feature::AbstractArray{<:Any,1}) = oneHotEncoding(feature, unique(feature));
-### Esta funcion nn tou seuguro de que te ben, pide non usar function e esto é o unico que lle vexo sentido e non me salta errores xd, despos proboa ###
+### Esta funcion nn tou seuguro de que te ben, pide non usar function e esto é o unico que lle vexo sentido e non me salta errorores xd, despos proboa ###
 
 function oneHotEncoding(feature::AbstractArray{Bool,1})
     return reshape(feature, :, 1);
@@ -198,7 +198,7 @@ function buildClassANN(numInputs::Int, topology::AbstractArray{<:Int,1}, numOutp
     if (numOutputs > 2); 
         ann = Chain(ann..., Dense(numInputsLayer, numOutputs, identity));
         ann = Chain(ann..., softmax);        
-    else        ### Ahora funciona ben con 2 ou menos. i ao salir do bucle tiña leght(topology) + 1 como valor e transferFunctions[] solo ten length(top..) elementos, de ahi o BoundsError, intentaba acceder ao 4 cando solo tiña 3 elementos ###
+    else        ### Ahora funciona ben con 2 ou menos. i ao salir do bucle tiña leght(topology) + 1 como valor e transferFunctions[] solo ten length(top..) elementos, de ahi o Boundserroror, intentaba acceder ao 4 cando solo tiña 3 elementos ###
         ann = Chain(ann..., Dense(numInputsLayer, 1, σ));
     end;
     return ann;
@@ -210,7 +210,7 @@ function trainClassANN(topology::AbstractArray{<:Int,1}, dataset::Tuple{Abstract
     ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
 
     ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
-    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o error de antes ###
+    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o erroror de antes ###
     loss(x,y) = (size(targets, 2) == 1) ? 
         (Losses.binarycrossentropy(ann(x),y)) : 
         (Losses.crossentropy(ann(x),y));
@@ -287,7 +287,7 @@ function trainClassANN(topology::AbstractArray{<:Int,1},
     ann = buildClassANN(size(inputs, 2), topology, size(targets, 2); transferFunctions);
 
     ### A funcion "loss" é pa decidir que funcion usar para entrenar a RNA, recibe as salidas do modelo e as salidas deseadas ###
-    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o error de antes ###
+    ### Cambiei a forma de elegir loss a esta que encontrei, asi deberiamos de poder evitar o erroror de antes ###
     loss(x,y) = (size(targets, 2) == 1) ? 
         (Losses.binarycrossentropy(ann(x),y)) : 
         (Losses.crossentropy(ann(x),y));
@@ -407,27 +407,70 @@ function confusionMatrix(outputs::AbstractArray{<:Real,1}, targets::AbstractArra
 end;
 
 function confusionMatrix(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2}; weighted::Bool=true)
-    #
-    # Codigo a desarrollar
-    #
+    # Comprobamos dimensiones
+    @assert size(outputs,2) == size(targets,2) "Las matrices deben tener el mismo número de columnas"
+    numClasses = size(outputs,2)
+    @assert numClasses!= 2 "No válido para matrices de dos columnas"
+    if numClasses == 1
+        return confusionMatrix(vec(outputs),vec(targets))
+    end
+    # Reservamos memoria para las métricas
+    sensibilidad = zeros(numClasses)
+    especificidad = zeros(numClasses)
+    VPP = zeros(numClasses)
+    VPN = zeros(numClasses)
+    F1 = zeros(numClasses)
+    # Calculamos métricas por clase
+    for c in 1:numClasses
+        acc, error, sen, esp, vpp, vpn, f1, _ = confusionMatrix(outputs[:,c], targets[:,c])
+        sensibilidad[c]= sen
+        especificidad[c]= esp
+        VPP[c]= vpp
+        VPN[c]= vpn
+        F1[c]= f1
+    end
+    # Matriz de confusión
+    MatrizConfusion = targets' * outputs
+    # Estrategia macro (weighted)
+    if weighted
+        weights= vec(sum(targets, dims=1))
+        sensibilidadMedia= sum(sensibilidad .* weights) / sum(weights)
+        especificidadMedia = sum(especificidad .* weights) / sum(weights)
+        VPPMedia= sum(VPP .* weights) / sum(weights)
+        VPNMedia= sum(VPN .* weights) / sum(weights)
+        F1Media = sum(F1 .* weights) / sum(weights)
+    else
+        sensibilidadMedia =mean(sensibilidad)
+        especificidadMedia =mean(especificidad)
+        VPPMedia = mean(VPP)
+        VPNMedia= mean(VPN)
+        F1Media = mean(F1)
+    end
+    # Calculamos precisión y tasa de error
+    acc= accuracy(outputs, targets)
+    error= 1 - acc
+    return (acc,error,sensibilidadMedia,especificidadMedia,VPPMedia,VPNMedia,F1Media,MatrizConfusion)
 end;
 
 function confusionMatrix(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2}; threshold::Real=0.5, weighted::Bool=true)
-    #
-    # Codigo a desarrollar
-    #
+    # Convertimos outputs a booleano
+    outputsBool= classifyOutputs(outputs; threshold=threshold)
+    return confusionMatrix(outputsBool,targets; weighted=weighted)
 end;
 
 function confusionMatrix(outputs::AbstractArray{<:Any,1}, targets::AbstractArray{<:Any,1}, classes::AbstractArray{<:Any,1}; weighted::Bool=true)
-    #
-    # Codigo a desarrollar
-    #
+    # Comprobamos que todas las etiquetas están en classes
+    @assert(all([in(label, classes) for label in vcat(targets, outputs)]))
+    # Codificamos outputs y targets
+    outputsBool= oneHotEncoding(outputs,classes)
+    targetsBool= oneHotEncoding(targets,classes)
+    return confusionMatrix(outputsBool,targetsBool; weighted=weighted)
 end;
 
 function confusionMatrix(outputs::AbstractArray{<:Any,1}, targets::AbstractArray{<:Any,1}; weighted::Bool=true)
-    #
-    # Codigo a desarrollar
-    #
+    # Sacamos la lista de clases que aparecen en outputs y targets
+    classes = unique(vcat(targets, outputs))
+    return confusionMatrix(outputs,targets,classes; weighted=weighted)
 end;
 
 using SymDoME
@@ -435,22 +478,66 @@ using GeneticProgramming
 
 
 function trainClassDoME(trainingDataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,1}}, testInputs::AbstractArray{<:Real,2}, maximumNodes::Int)
-    #
-    # Codigo a desarrollar
-    #
+    # Convertimos las entradas de entrenamiento y test a float 
+    trainingInputs= Float64.(trainingDataset[1])
+    trainingTargets= trainingDataset[2]
+    testInputs= Float64.(testInputs)
+    # Entrenamos el modelo DoME 
+    model, _, _, _ = dome(trainingInputs, trainingTargets; maximumNodes=maximumNodes)
+    # Evaluamos el modelo en el conjunto de test
+    testOutputs = evaluateTree(model, testInputs)
+    # Si la salida es un valor constante entonces repite ese valor para todas las filas
+    if isa(testOutputs,Real)
+        testOutputs = repeat([testOutputs],size(testInputs,1))
+    end
+    return testOutputs
 end;
 
 function trainClassDoME(trainingDataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{Bool,2}}, testInputs::AbstractArray{<:Real,2}, maximumNodes::Int)
-    #
-    # Codigo a desarrollar
-    #
+    # Convertimos las entradas de entrenamiento y test a Float64
+    trainingInputs= Float64.(trainingDataset[1])
+    trainingTargets= trainingDataset[2]
+    testInputs= Float64.(testInputs)
+    numClasses= size(trainingTargets,2)
+    # Si solo hay una clase entonces se llama a la versión binaria y devolvemos una matriz columna
+    if numClasses == 1
+        return reshape(trainClassDoME((trainingInputs,vec(trainingTargets)),testInputs,maximumNodes), :, 1)
+    end
+    # Creamos una matriz para guardar las salidas de test para cada clase
+    testOutputs = Array{Float64,2}(undef,size(testInputs,1),numClasses)
+    # Para cada clase entrena un modelo DOME usando la columna correspondiente de targets
+    for c in 1:numClasses
+        testOutputs[:,c] = trainClassDoME((trainingInputs, trainingTargets[:,c]), testInputs, maximumNodes)
+    end
+    return testOutputs
 end;
 
 
 function trainClassDoME(trainingDataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, testInputs::AbstractArray{<:Real,2}, maximumNodes::Int)
-    #
-    # Codigo a desarrollar
-    #
+    # Convertimos las entradas de entrenamiento y test a float
+    trainingInputs= Float64.(trainingDataset[1])
+    trainingTargets= trainingDataset[2]
+    # Calculamos el vector de clases presentes en trainingTargets
+    classes= unique(trainingTargets)
+    # Preparamos el vector de salida para las predicciones de test
+    testOutputs= Array{eltype(trainingTargets),1}(undef,size(testInputs,1))
+    testOutputsDoME= trainClassDoME((trainingInputs, oneHotEncoding(trainingTargets, classes)), testInputs, maximumNodes)
+    # Clasificamos las salidas numéricas en etiquetas con umbral 0
+    testOutputsBool= classifyOutputs(testOutputsDoME; threshold=0)
+    if length(classes)<= 2
+        # Si hay una o dos clases entonces se le asigna la etiqueta correspondiente según el valor booleano
+        testOutputsBool= vec(testOutputsBool)
+        testOutputs[testOutputsBool] .= classes[1]
+        if length(classes) == 2
+            testOutputs[.!testOutputsBool] .= classes[2]
+        end
+    else
+        # Si hay mas de dos clases entonces para cada clase asigna la etiqueta a las instancias clasificadas en esa clase
+        for numClass in 1:length(classes)
+            testOutputs[testOutputsBool[:,numClass]] .= classes[numClass]
+        end
+    end
+    return testOutputs
 end;
 
 
