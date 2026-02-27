@@ -551,27 +551,50 @@ using Random
 using Random:seed!
 
 function crossvalidation(N::Int64, k::Int64)
-    #
-    # Codigo a desarrollar
-    #
+    @assert k > 1 "k debe ser mayor que 1"
+    @assert N >= k "Debe haber al menos k patrones"
+
+    indices = repeat(1:k, Int64(ceil(N/k)));
+    indices = indices[1:N]; # Ajustamos el tamaño a N
+    shuffle!(indices);
+
+    return indices;
 end;
 
 function crossvalidation(targets::AbstractArray{Bool,1}, k::Int64)
-    #
-    # Codigo a desarrollar
-    #
+    @assert sum(targets) >= k "No hay suficientes patrones positivos para k-fold"
+    @assert sum(.!targets) >= k "No hay suficientes patrones negativos para k-fold"
+
+    indices = Array{Int64,1}(undef, length(targets));
+
+    # Positivos
+    posIdx = targets
+    indices[posIdx] = crossvalidation(sum(posIdx), k);
+
+    # Negativos
+    negIdx = .!targets
+    indices[negIdx] = crossvalidation(sum(negIdx), k);
+
+    return indices;
 end;
 
 function crossvalidation(targets::AbstractArray{Bool,2}, k::Int64)
-    #
-    # Codigo a desarrollar
-    #
+    numClasses = size(targets, 2);
+    N = size(targets, 1);
+
+    indices = Array{Int64,1}(undef, N);
+
+    for c in 1:numClasses
+        @assert sum(targets[:,c]) >= k "La clase $c no tiene suficientes patrones"
+        indices[targets[:,c]] = crossvalidation(sum(targets[:,c]), k);
+    end;
+
+    return indices;
 end;
 
 function crossvalidation(targets::AbstractArray{<:Any,1}, k::Int64)
-    #
-    # Codigo a desarrollar
-    #
+    oneHotTargets = oneHotEncoding(targets);
+    return crossvalidation(oneHotTargets, k);
 end;
 
 function ANNCrossValidation(topology::AbstractArray{<:Int,1},
