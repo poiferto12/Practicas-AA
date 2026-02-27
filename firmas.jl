@@ -395,15 +395,42 @@ end;
 
 
 function confusionMatrix(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
-    #
-    # Codigo a desarrollar
-    #
+    # Comprueba que hay mismo nº de outputs y targets
+    @assert length(outputs) == length(targets);
+
+    VN = sum(.!outputs .& .!targets);   #VN = Verdaderos Negativos
+    FP = sum(outputs .& .!targets);     #FP = Falsos Positivos
+    FN = sum(.!outputs .& targets);     #FN = Falsos Negativos
+    VP = sum(outputs .& targets);       #VP = Verdaderos Positivos
+
+    # Calcula la métrica de precisión (accuracy)
+    accurr = (VN+VP)/(VN+VP+FN+FP);
+    # Calcula la métrica de tasa de error
+    error_rate = (FN+FP)/(VN+VP+FN+FP);
+
+    # Tenemos en cuenta los casos especiales utilizando un ifelse ? : 
+    # Calcula la métrica de sensibilidad (recall)
+    sensibilidad = VP+FN == 0 ? 1.0 : VP/(FN+VP);   # Si VP = FN = 0, el valor de sensibilidad será igual a 1.0
+    # Calcula la métrica de especificidad (specificity)
+    especificidad = VN+FP == 0 ? 1.0 : VN/(FP+VN);  # Si VN = FP = 0, el valor de especificidad será igual a 1.0    
+    # Calcula la métrica de Valor Predictivo Positivo
+    VPP = VP+FP == 0 ? 1.0 : VP/(VP+FP);    # Si VP = FP = 0, el valor de VPP será igual a 1.0
+    # Calcula la métrica de Valor Predictivo Negativo
+    VPN = VN+FN == 0 ? 1.0 : VN/(VN+FN);    # Si VN = FN = 0, el valor de VPN será igual a 1.0
+    # Calcula la métrica de F1-score
+    F1_score = sensibilidad+VPP == 0 ? 0.0 : (2*sensibilidad*VPP)/(sensibilidad+VPP);    # Si sensibilidad = VPP = 0, el valor de F1-score será igual a 0.0
+
+    confusion_Matrix = Array{Int64,2}([VN FP;
+                                        FN VP]);
+
+    
+    # Devuelve Valor de precisión, tasa de fallo, sensibilidad, especificidad, valor predictivo positivo, valor predictivo negativo, F1-score y matriz de confusión
+    return(accurr, error_rate, sensibilidad, especificidad, VPP, VPN, F1_score, confusion_Matrix);
+
 end;
 
 function confusionMatrix(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Real=0.5)
-    #
-    # Codigo a desarrollar
-    #
+    return confusionMatrix(outputs .>= threshold,targets);
 end;
 
 function confusionMatrix(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2}; weighted::Bool=true)
