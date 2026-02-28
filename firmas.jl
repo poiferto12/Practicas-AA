@@ -630,9 +630,85 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
     numExecutions::Int=50,
     transferFunctions::AbstractArray{<:Function,1}=fill(σ, length(topology)),
     maxEpochs::Int=1000, minLoss::Real=0.0, learningRate::Real=0.01, validationRatio::Real=0, maxEpochsVal::Int=20)
-    #
-    # Codigo a desarrollar
-    #
+
+    inputs, targetsRaw = dataset;
+    inputs = Float32.(inputs);
+
+    classes = unique(targetsRaw);
+    targets = oneHotEncoding(targetsRaw, classes);
+
+    numFolds = maximum(crossValidationIndices);
+    numClasses = length(classes);
+
+    accVector = zeros(Float64, numFolds);
+    errorVector = zeros(Float64, numFolds);
+    sensVector = zeros(Float64, numFolds);
+    specVector = zeros(Float64, numFolds);
+    vppVector = zeros(Float64, numFolds);
+    vpnVector = zeros(Float64, numFolds);
+    f1Vector = zeros(Float64, numFolds);
+
+    globalConfMatrix = zeros(Float64, numClasses, numClasses);
+
+    for fold in 1:numFolds
+
+        trainIdx = crossValidationIndices .!= fold;
+        testIdx = crossValidationIndices .== fold;
+
+        trainInputs = inputs[trainIdx, :];
+        trainTargets = targets[trainIdx, :];
+
+        testInputs = inputs[testIdx, :];
+        testTargets = targets[testIdx, :];
+
+        metricsEachExecution = zeros(Float64, numExecutions, 7); # acc, error, sens, spec, vpp, vpn, f1
+        confMats = zeros(Float64, numClasses, numClasses, numExecutions);
+
+        for exec in 1:numExecutions
+            if validationRatio > 0
+                valRatioFold = validationRatio * size(inputs, 1) / size(trainInputs, 1);
+                trIdx, valIdx = holdOut(size(trainInputs, 1), valRatioFold);
+
+                ann = trainClassANN(topology, (trainInputs[trIdx, :], trainTargets[trIdx, :]),
+                    validationDataset=(trainInputs[valIdx, :], trainTargets[valIdx, :]),
+                    testDataset=(testInputs, testTargets),
+                    transferFunctions=transferFunctions,
+                    maxEpochs=maxEpochs,
+                    minLoss=minLoss,
+                    learningRate=learningRate,
+                    maxEpochsVal=maxEpochsVal);
+            else
+                ann = trainClassANN(topology, (trainInputs, trainTargets),
+                    testDataset=(testInputs, testTargets),
+                    transferFunctions=transferFunctions,
+                    maxEpochs=maxEpochs,
+                    minLoss=minLoss,
+                    learningRate=learningRate);
+            end;
+
+            (acc, error, sens, spec, vpp, vpn, f1, confMat) = confusionMatrix(ann(testInputs')', testTargets);
+                    
+            metricsEachExec[exec, :] = [acc, error, sens, spec, vpp, vpn, f1];
+            confMats[:, :, exec] .= confMat;
+        end;
+
+        foldMetrics = mean(metricsEachExec, dims=1);
+
+        accVector[fold], errorVector[fold], sensVector[fold], specVector[fold],
+        vppVector[fold], vpnVector[fold], f1Vector[fold] = vec(foldMetrics);
+
+        globalConfMatrix .+= sum(confMats, dims=3)[:,:,1];
+    end;
+
+    return ((mean(accVector), std(accVector)),
+            (mean(errorVector), std(errorVector)),
+            (mean(sensVector), std(sensVector)),
+            (mean(specVector), std(specVector)),
+            (mean(vppVector), std(vppVector)),
+            (mean(vpnVector), std(vpnVector)),
+            (mean(f1Vector), std(f1Vector)),
+            globalConfMatrix);
+
 end;
 
 
