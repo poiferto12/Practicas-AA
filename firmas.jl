@@ -661,7 +661,7 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
         testInputs = inputs[testIdx, :];
         testTargets = targets[testIdx, :];
 
-        metricsEachExecution = zeros(Float64, numExecutions, 7); # acc, error, sens, spec, vpp, vpn, f1
+        metricsEachExec = zeros(Float64, numExecutions, 7); # acc, error, sens, spec, vpp, vpn, f1
         confMats = zeros(Float64, numClasses, numClasses, numExecutions);
 
         for exec in 1:numExecutions
@@ -669,7 +669,7 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
                 valRatioFold = validationRatio * size(inputs, 1) / size(trainInputs, 1);
                 trIdx, valIdx = holdOut(size(trainInputs, 1), valRatioFold);
 
-                ann = trainClassANN(topology, (trainInputs[trIdx, :], trainTargets[trIdx, :]),
+                ann, = trainClassANN(topology, (trainInputs[trIdx, :], trainTargets[trIdx, :]),
                     validationDataset=(trainInputs[valIdx, :], trainTargets[valIdx, :]),
                     testDataset=(testInputs, testTargets),
                     transferFunctions=transferFunctions,
@@ -678,7 +678,7 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
                     learningRate=learningRate,
                     maxEpochsVal=maxEpochsVal);
             else
-                ann = trainClassANN(topology, (trainInputs, trainTargets),
+                ann, = trainClassANN(topology, (trainInputs, trainTargets),
                     testDataset=(testInputs, testTargets),
                     transferFunctions=transferFunctions,
                     maxEpochs=maxEpochs,
