@@ -1,7 +1,7 @@
 # Archivo de pruebas para realizar autoevaluación de algunas funciones de los ejercicios
 
 # Importamos el archivo con las soluciones a los ejercicios
-include("soluciones.jl");
+include("firmas.jl");
 #   Cambiar "soluciones.jl" por el nombre del archivo que contenga las funciones desarrolladas
 
 # Fichero de pruebas realizado con la versión 1.12.4 de Julia
@@ -152,7 +152,7 @@ seed!(1); ((testAccuracy_mean, testAccuracy_std), (testErrorRate_mean, testError
 
 
 
- 
+
 
 
 

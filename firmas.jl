@@ -726,7 +726,205 @@ DTClassifier  = MLJ.@load DecisionTreeClassifier pkg=DecisionTree verbosity=0
 
 
 function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict, dataset::Tuple{AbstractArray{<:Real,2}, AbstractArray{<:Any,1}}, crossValidationIndices::Array{Int64,1})
-    #
-    # Codigo a desarrollar
-    #
-end;
+
+    inputs, targets = dataset;
+
+    if modelType == :ANN
+        topology = modelHyperparameters["topology"];
+        
+        if haskey(modelHyperparameters, "transferFunctions")
+            transferFunctions = modelHyperparameters["transferFunctions"];
+        else;
+            transferFunctions = fill(σ, length(topology));
+        end;
+        
+        if haskey(modelHyperparameters, "maxEpochs")
+            maxEpochs = modelHyperparameters["maxEpochs"];
+        else;
+            maxEpochs = 1000;
+        end;
+        
+        if haskey(modelHyperparameters, "minLoss")
+            minLoss = modelHyperparameters["minLoss"];
+        else;
+            minLoss = 0.0
+        end;
+        
+        if haskey(modelHyperparameters, "learningRate")
+            learningRate = modelHyperparameters["learningRate"];
+        else;
+            learningRate = 0.01;
+        end;
+        
+        if haskey(modelHyperparameters, "validationRatio")
+            validationRatio = modelHyperparameters["validationRatio"];
+        else;
+            validationRatio = 0.0;
+        end;
+        
+        if haskey(modelHyperparameters, "maxEpochsVal")
+            maxEpochsVal = modelHyperparameters["maxEpochsVal"];
+        else;
+            maxEpochsVal = 20;
+        end;
+        
+        if haskey(modelHyperparameters, "numExecutions")
+            numExecutions = modelHyperparameters["numExecutions"];
+        else;
+            numExecutions = 50;
+        end;
+        
+        return ANNCrossValidation(topology, dataset, crossValidationIndices;
+            numExecutions=numExecutions,
+            transferFunctions=transferFunctions,
+            maxEpochs=maxEpochs,
+            minLoss=minLoss,
+            learningRate=learningRate,
+            validationRatio=validationRatio,
+            maxEpochsVal=maxEpochsVal)
+    end
+
+    targets = string.(targets);
+
+    classes = unique(targets);
+
+    numFolds = maximum(crossValidationIndices);
+    numClasses = length(classes);
+
+    accVector = zeros(numFolds);
+    errorVector = zeros(numFolds);
+    sensVector = zeros(numFolds);
+    specVector = zeros(numFolds);
+    vppVector = zeros(numFolds);
+    vpnVector = zeros(numFolds);
+    f1Vector = zeros(numFolds);
+
+    globalConfMatrix = zeros(numClasses, numClasses);
+
+    for i in 1:numFolds
+
+        trainingInputs = inputs[crossValidationIndices .!= i, :];
+        testInputs = inputs[crossValidationIndices .== i, :];
+
+        trainingTargets = targets[crossValidationIndices .!= i];
+        testTargets = targets[crossValidationIndices .== i];
+
+        if modelType == :DoME
+
+            maxNodes = modelHyperparameters["maximumNodes"];
+
+            outputs = trainClassDoME(
+                (trainingInputs, trainingTargets),
+                testInputs,
+                maxNodes
+            );
+
+        elseif modelType == :SVC
+
+            C = modelHyperparameters["C"];
+            kernel = modelHyperparameters["kernel"] ;
+
+            if haskey(modelHyperparameters, "gamma")
+                gamma = modelHyperparameters["gamma"];
+            else;
+                gamma = 0.0;
+            end;
+            
+            if haskey(modelHyperparameters, "degree")
+                degree = modelHyperparameters["degree"];
+            else;
+                degree = 3;
+            end;
+            
+            if haskey(modelHyperparameters, "coef0")
+                coef0 = modelHyperparameters["coef0"];
+            else;
+                coef0 = 0;
+            end;
+
+            if kernel == "linear"
+                k = LIBSVM.Kernel.Linear;
+            elseif kernel == "rbf"
+                k = LIBSVM.Kernel.RadialBasis;
+            elseif kernel == "sigmoid"
+                k = LIBSVM.Kernel.Sigmoid;
+            elseif kernel == "poly"
+                k = LIBSVM.Kernel.Polynomial;
+            end
+
+            model = SVMClassifier(
+                kernel = k,
+                cost = Float64(C),
+                gamma = Float64(gamma),
+                degree = Int32(degree),
+                coef0 = Float64(coef0)
+            );
+
+            mach = machine(model,
+                MLJ.table(trainingInputs),
+                categorical(trainingTargets));
+
+            MLJ.fit!(mach, verbosity=0);
+
+            outputs = MLJ.predict(mach, MLJ.table(testInputs));
+
+        elseif modelType == :DecisionTreeClassifier
+
+            depth = modelHyperparameters["max_depth"];
+
+            model = DTClassifier(
+                max_depth = depth,
+                rng = 1
+            );
+
+            mach = machine(model,
+                MLJ.table(trainingInputs),
+                categorical(trainingTargets))
+
+            MLJ.fit!(mach, verbosity=0);
+
+            outputs = MLJ.predict(mach, MLJ.table(testInputs));
+            outputs = mode.(outputs);
+
+        elseif modelType == :KNeighborsClassifier
+
+            k = modelHyperparameters["n_neighbors"];
+
+            model = kNNClassifier(K = k);
+
+            mach = machine(model,
+                MLJ.table(trainingInputs),
+                categorical(trainingTargets));
+
+            MLJ.fit!(mach, verbosity=0);
+
+            outputs = MLJ.predict(mach, MLJ.table(testInputs));
+            outputs = mode.(outputs);
+
+        else;
+            error("Modelo no soportado");
+        end;
+
+        acc, error, sens, spec, vpp, vpn, f1, confMat =
+            confusionMatrix(outputs, testTargets, classes);
+
+        accVector[i] = acc;
+        errorVector[i] = error;
+        sensVector[i] = sens;
+        specVector[i] = spec;
+        vppVector[i] = vpp;
+        vpnVector[i] = vpn;
+        f1Vector[i] = f1;
+
+        globalConfMatrix .+= confMat;
+    end;
+
+    return ((mean(accVector), std(accVector)),
+            (mean(errorVector), std(errorVector)),
+            (mean(sensVector), std(sensVector)),
+            (mean(specVector), std(specVector)),
+            (mean(vppVector), std(vppVector)),
+            (mean(vpnVector), std(vpnVector)),
+            (mean(f1Vector), std(f1Vector)),
+            globalConfMatrix);
+end
