@@ -697,7 +697,7 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
         accVector[fold], errorVector[fold], sensVector[fold], specVector[fold],
         vppVector[fold], vpnVector[fold], f1Vector[fold] = vec(foldMetrics);
 
-        globalConfMatrix .+= sum(confMats, dims=3)[:,:,1];
+        globalConfMatrix .+= mean(confMats, dims=3)[:,:,1];
     end;
 
     return ((mean(accVector), std(accVector)),
