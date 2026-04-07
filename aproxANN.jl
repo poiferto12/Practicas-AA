@@ -25,9 +25,9 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     ]
     
     # Parametros comuns para entrenar (Ter solo 1 descomentado)
-    learning_rate = 0.01; num_executions = 20; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.005; num_executions = 30; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.05; num_executions = 30; max_epochs = 500; min_loss = 0.05;
+    learning_rate = 0.01; num_executions = 5; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.005; num_executions = 5; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.05; num_executions = 5; max_epochs = 500; min_loss = 0.05;
     
     # Almacenar resultados
     results = [];
