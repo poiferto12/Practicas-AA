@@ -25,9 +25,9 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     ]
     
     # Parametros comuns para entrenar (Ter solo 1 descomentado)
-    learning_rate = 0.01; num_executions = 5; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.005; num_executions = 5; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.05; num_executions = 5; max_epochs = 500; min_loss = 0.05;
+    learning_rate = 0.01; num_executions = 20; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.005; num_executions = 30; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.05; num_executions = 30; max_epochs = 500; min_loss = 0.05;
     
     # Almacenar resultados
     results = [];
@@ -104,11 +104,15 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
 end
 
 # Programa principal
-println("Cargando datos...");
-inputs, targets = loadDataset("./dataset");
+# Verifica si datos ya están cargados (por script_resultados.jl)
+# Si no, los carga de forma independiente
+if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
+    println("Cargando datos...");
+    inputs, targets = loadDataset("./dataset");
 
-println("Generando índices de validación cruzada...");
-cvIndices = crossvalidation(targets, 10);
+    println("Generando índices de validación cruzada...");
+    cvIndices = crossvalidation(targets, 10);
+end
 
 println("Ejecutando experimentos con Redes Neuronales...");
 println();

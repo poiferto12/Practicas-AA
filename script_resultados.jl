@@ -1,0 +1,291 @@
+# script_resultados.jl
+# Script maestro modular para ejecutar todos los modelos y generar reporte
+# 
+# Características:
+# - Modular: ejecuta solo lo que esté disponible
+# - Exporta resultados a archivo de texto formateado
+# - Genera resúmenes por modelo y comparativas
+
+using Random
+using Dates
+Random.seed!(1234)
+
+include("firmas.jl");
+include("extractFeatures.jl");
+
+nothing  # Suprimir salida de includes
+
+# ============================================================================
+# SECCIÓN 1: CARGAR DATOS (UNA SOLA VEZ)
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  CARGANDO DATASET                       │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    inputs, targets = loadDataset("./dataset")
+    cvIndices = crossvalidation(targets, 10)
+    println("✓ Dataset cargado correctamente")
+    println("  - Muestras: $(size(inputs, 1))")
+    println("  - Características: $(size(inputs, 2))")
+    println("  - Clases: $(length(unique(targets)))")
+    println("  - Folds de validación cruzada: 10")
+    println()
+catch e
+    println("✗ Error cargando dataset: ", e)
+    exit(1)
+end
+
+# ============================================================================
+# SECCIÓN 2: DICCIONARIO PARA ALMACENAR TODOS LOS RESULTADOS
+# ============================================================================
+
+resultados_globales = Dict{String, Any}()
+modelos_ejecutados = String[]
+
+# ============================================================================
+# SECCIÓN 3: EJECUTAR REDES NEURONALES
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  EJECUTANDO: Redes Neuronales          │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    if isfile("aproxANN.jl")
+        include("aproxANN.jl")
+        
+        # Verificar si se ejecutó bien capturando la excepción
+        try
+            if !isempty(results)
+                push!(modelos_ejecutados, "ANN")
+                resultados_globales["ANN"] = (results, best_idx)
+                println("\n✓ Redes Neuronales ejecutadas correctamente\n")
+            else
+                println("✗ No se generaron resultados en aproxANN.jl\n")
+            end
+        catch err
+            if isa(err, UndefVarError)
+                println("✗ No se generaron resultados en aproxANN.jl\n")
+            else
+                throw(err)
+            end
+        end
+    else
+        println("✗ Archivo no encontrado: aproxANN.jl\n")
+    end
+catch e
+    println("✗ Error en Redes Neuronales: ")
+    println("  $(typeof(e)): $(e)\n")
+end
+
+# ============================================================================
+# SECCIÓN 4: EJECUTAR SVM
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  EJECUTANDO: SVM                        │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    if isfile("aproxSVM.jl")
+        include("aproxSVM.jl")
+        
+        # Verificar si se ejecutó bien
+        try
+            if !isempty(results)
+                push!(modelos_ejecutados, "SVM")
+                resultados_globales["SVM"] = (results, best_config)
+                println("\n✓ SVM ejecutado correctamente\n")
+            else
+                println("✗ No se generaron resultados en aproxSVM.jl\n")
+            end
+        catch err
+            if isa(err, UndefVarError)
+                println("✗ No se generaron resultados en aproxSVM.jl\n")
+            else
+                throw(err)
+            end
+        end
+    else
+        println("✗ Archivo no encontrado: aproxSVM.jl\n")
+    end
+catch e
+    println("✗ Error en SVM: ")
+    println("  $(typeof(e)): $(e)\n")
+end
+
+# ============================================================================
+# SECCIÓN 5: EJECUTAR kNN (si existe)
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  EJECUTANDO: kNN                        │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    if isfile("aproxKNN.jl")
+        include("aproxKNN.jl")
+        
+        # Verificar si se ejecutó bien
+        try
+            if !isempty(results)
+                push!(modelos_ejecutados, "kNN")
+                resultados_globales["kNN"] = (results, best_k)
+                println("\n✓ kNN ejecutado correctamente\n")
+            else
+                println("✗ No se generaron resultados en aproxKNN.jl\n")
+            end
+        catch err
+            if isa(err, UndefVarError)
+                println("✗ No se generaron resultados en aproxKNN.jl\n")
+            else
+                throw(err)
+            end
+        end
+    else
+        println("✗ Archivo no encontrado: aproxKNN.jl")
+        println("  (Continuando con los demás modelos...)\n")
+    end
+catch e
+    println("✗ Error en kNN: ")
+    println("  $(typeof(e)): $(e)")
+    println("  (Continuando con los demás modelos...)\n")
+end
+
+# ============================================================================
+# SECCIÓN 6: GENERAR REPORTE EN ARCHIVO .TXT
+# ============================================================================
+
+println()
+println("="^60)
+println("GENERANDO REPORTE DE RESULTADOS")
+println("="^60)
+println()
+
+if isempty(modelos_ejecutados)
+    println("✗ No se ejecutó ningún modelo correctamente.")
+    println("  Revisa los errores anteriores.")
+else
+    # Abrir archivo para escritura
+    open("REPORTE_RESULTADOS.txt", "w") do io
+        
+        write(io, "╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  REPORTE DE RESULTADOS - CLASIFICACIÓN DE SONIDOS ANIMALES  ║\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+        
+        write(io, "Fecha de ejecución: $(Dates.now())\n")
+        write(io, "Semilla aleatoria: 1234\n")
+        write(io, "Validación cruzada: 10 folds\n\n")
+        
+        write(io, "Modelos ejecutados: $(join(modelos_ejecutados, ", "))\n")
+        write(io, "Modelos faltantes: ")
+        modelos_faltantes = setdiff(["ANN", "SVM", "kNN"], modelos_ejecutados)
+        if isempty(modelos_faltantes)
+            write(io, "Ninguno\n")
+        else
+            write(io, "$(join(modelos_faltantes, ", "))\n")
+        end
+        write(io, "\n" * "="^60 * "\n\n")
+    
+    # ========================================================================
+    # SECCIÓN ANN
+    # ========================================================================
+    
+    if in("ANN", modelos_ejecutados)
+        (ann_results, ann_best_idx) = resultados_globales["ANN"]
+        
+        write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  MODELO: REDES NEURONALES ARTIFICIALES (ANN)\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+        
+        write(io, "TOPOLOGÍAS PROBADAS: $(length(ann_results))\n\n")
+        
+        write(io, "┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐\n")
+        for (idx, resultado) in enumerate(ann_results)
+            topology = resultado.topology
+            write(io, "\n$(idx). Topología: $topology\n")
+            write(io, "   Accuracy:      $(round(resultado.accuracy[1], digits=4)) ± $(round(resultado.accuracy[2], digits=4))\n")
+            write(io, "   Sensibilidad:  $(round(resultado.recall[1], digits=4)) ± $(round(resultado.recall[2], digits=4))\n")
+            write(io, "   Especificidad: $(round(resultado.specificity[1], digits=4)) ± $(round(resultado.specificity[2], digits=4))\n")
+            write(io, "   VPP (Precision): $(round(resultado.precision[1], digits=4)) ± $(round(resultado.precision[2], digits=4))\n")
+            write(io, "   F1-Score:      $(round(resultado.f1[1], digits=4)) ± $(round(resultado.f1[2], digits=4))\n")
+        end
+        write(io, "\n└──────────────────────────────────────────────────────────┘\n")
+        
+        best_ann = ann_results[ann_best_idx]
+        write(io, "\n┌─ MEJOR TOPOLOGÍA (por F1-score) ────────────────────────┐\n")
+        write(io, "│ Configuración: $(best_ann.topology)\n")
+        write(io, "│ Accuracy:      $(round(best_ann.accuracy[1], digits=4)) ± $(round(best_ann.accuracy[2], digits=4))\n")
+        write(io, "│ Sensibilidad:  $(round(best_ann.recall[1], digits=4)) ± $(round(best_ann.recall[2], digits=4))\n")
+        write(io, "│ Especificidad: $(round(best_ann.specificity[1], digits=4)) ± $(round(best_ann.specificity[2], digits=4))\n")
+        write(io, "│ VPP:           $(round(best_ann.precision[1], digits=4)) ± $(round(best_ann.precision[2], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(best_ann.f1[1], digits=4)) ± $(round(best_ann.f1[2], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        write(io, "\n" * "-"^60 * "\n")
+    end
+    
+    # ========================================================================
+    # SECCIÓN SVM
+    # ========================================================================
+    
+    if in("SVM", modelos_ejecutados)
+        (svm_results, svm_best_config) = resultados_globales["SVM"]
+        
+        write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  MODELO: MÁQUINAS DE VECTORES DE SOPORTE (SVM)\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+        
+        write(io, "CONFIGURACIONES PROBADAS: $(length(svm_results))\n\n")
+        
+        write(io, "┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐\n")
+        for (idx, (config, res)) in enumerate(svm_results)
+            write(io, "\n$(idx). Kernel: $(config["kernel"]), C: $(config["C"])\n")
+            write(io, "   Accuracy:      $(round(res[1][1], digits=4)) ± $(round(res[1][2], digits=4))\n")
+            write(io, "   Sensibilidad:  $(round(res[3][1], digits=4)) ± $(round(res[3][2], digits=4))\n")
+            write(io, "   Especificidad: $(round(res[4][1], digits=4)) ± $(round(res[4][2], digits=4))\n")
+            write(io, "   VPP (Precision): $(round(res[5][1], digits=4)) ± $(round(res[5][2], digits=4))\n")
+            write(io, "   F1-Score:      $(round(res[7][1], digits=4)) ± $(round(res[7][2], digits=4))\n")
+        end
+        write(io, "\n└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MEJOR CONFIGURACIÓN (por F1-score) ──────────────────────┐\n")
+        write(io, "│ Kernel: $(svm_best_config["kernel"])\n")
+        write(io, "│ C:      $(svm_best_config["C"])\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        write(io, "\n" * "-"^60 * "\n")
+    end
+    
+    # ========================================================================
+    # SECCIÓN kNN (si existe)
+    # ========================================================================
+    
+    if in("kNN", modelos_ejecutados)
+        (knn_results, knn_best_k) = resultados_globales["kNN"]
+        
+        write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  MODELO: k-NEAREST NEIGHBORS (kNN)\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+        
+        write(io, "VALORES DE k PROBADOS: $(length(knn_results))\n\n")
+        write(io, "Mejor k según F1-score: $knn_best_k\n")
+        write(io, "\n" * "-"^60 * "\n")
+    end
+    
+    write(io, "\n")
+    write(io, "═"^60 * "\n")
+    write(io, "FIN DEL REPORTE\n")
+    write(io, "═"^60 * "\n")
+    end
+    
+    println("✓ Reporte guardado en: REPORTE_RESULTADOS.txt")
+    println()
+    println("Modelos ejecutados: ", join(modelos_ejecutados, ", "))
+    println("Archivo listo para ser procesado en la memoria LaTeX")
+end
+

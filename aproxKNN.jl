@@ -12,22 +12,20 @@ Ejecuta validación cruzada estratificada para kNN clásico usando modelCrossVal
 con los parámetros y métricas requeridos por la memoria y el enunciado.
 
 Argumentos:
-    datasetFolder :: String  Ruta a la carpeta de audios
-    ks            :: Vector  Valores de k a probar
-    kfolds        :: Int     Número de folds (por defecto 10)
+    inputs :: Matrix  Matriz de características
+    targets :: Vector Vector de etiquetas
+    cvIndices :: Vector Índices de validación cruzada
+    ks :: Vector Valores de k a probar
+    kfolds :: Int Número de folds (por defecto 10)
 
 Devuelve:
     results :: Dict con métricas medias y desviaciones para cada k
     best_k  :: Valor de k con mejor F1-score
 """
-function knn_modelCrossValidation(datasetFolder; ks=[1, 3, 5, 7, 9, 11], kfolds=10)
-    inputs, targets = loadDataset(datasetFolder)
-
+function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9, 11])
     results = Dict()
     best_f1 = -Inf
     best_k = ks[1]
-
-    cvIndices = crossvalidation(targets, kfolds)
 
     println("==================================================")
     println("Resultados kNN")
@@ -60,5 +58,11 @@ function knn_modelCrossValidation(datasetFolder; ks=[1, 3, 5, 7, 9, 11], kfolds=
     return results, best_k
 end
 
-# Ejemplo de uso:
-# results, best_k = knn_modelCrossValidation("./audios"; ks=[1, 3, 5, 7, 9, 11], kfolds=10)
+# Ejecutar directamente al hacer include:
+# Verifica si datos ya están cargados (por script_resultados.jl)
+if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
+    inputs, targets = loadDataset("./dataset")
+    cvIndices = crossvalidation(targets, 10)
+end
+
+results, best_k = knn_modelCrossValidation(inputs, targets, cvIndices)

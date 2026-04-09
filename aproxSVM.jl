@@ -7,12 +7,9 @@ Random.seed!(1234)
 include("firmas.jl")
 include("extractFeatures.jl")
 
-function svm_modelCrossValidation(datasetFolder; kfolds=5)
-    inputs, targets = loadDataset(datasetFolder)
-    cvIndices = crossvalidation(targets, kfolds)
-
+function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
     # Configuraciones sencillas para evitar bloqueos
-   configs = [
+    configs = [
     Dict("C" => 0.1,  "kernel" => "linear"),
     Dict("C" => 1.0,  "kernel" => "linear"),
     Dict("C" => 10.0, "kernel" => "linear"),
@@ -60,4 +57,10 @@ function svm_modelCrossValidation(datasetFolder; kfolds=5)
 end
 
 # Ejecutar directamente al hacer include:
-results, best_config = svm_modelCrossValidation("./audios"; kfolds=10)
+# Verifica si datos ya están cargados (por script_resultados.jl)
+if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
+    inputs, targets = loadDataset("./dataset")
+    cvIndices = crossvalidation(targets, 10)
+end
+
+results, best_config = svm_modelCrossValidation(inputs, targets, cvIndices)
