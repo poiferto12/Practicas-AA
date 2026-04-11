@@ -2,11 +2,11 @@
 ║  REPORTE DE RESULTADOS - CLASIFICACIÓN DE SONIDOS ANIMALES  ║
 ╚════════════════════════════════════════════════════════════╝
 
-Fecha de ejecución: 2026-04-11T17:29:24.783
+Fecha de ejecución: 2026-04-11T19:28:52.219
 Semilla aleatoria: 1234
 Validación cruzada: 10 folds
 
-Modelos ejecutados: ANN, SVM, kNN
+Modelos ejecutados: ANN, SVM, kNN, DecisionTree
 Modelos faltantes: Ninguno
 
 ============================================================
@@ -21,76 +21,76 @@ TOPOLOGÍAS PROBADAS: 8
 ┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐
 
 1. Topología: [32]
-   Accuracy:      0.8718 ± 0.0506
-   Sensibilidad:  0.9265 ± 0.0598
-   Especificidad: 0.7924 ± 0.087
-   VPP (Precision): 0.8692 ± 0.0506
-   F1-Score:      0.8946 ± 0.0434
+   Accuracy:      0.8647 ± 0.0417
+   Sensibilidad:  0.9243 ± 0.0436
+   Especificidad: 0.7785 ± 0.0782
+   VPP (Precision): 0.8617 ± 0.0465
+   F1-Score:      0.8891 ± 0.0355
 
 2. Topología: [64]
-   Accuracy:      0.8631 ± 0.038
-   Sensibilidad:  0.9157 ± 0.0564
-   Especificidad: 0.7864 ± 0.0629
-   VPP (Precision): 0.8649 ± 0.0351
-   F1-Score:      0.887 ± 0.0337
+   Accuracy:      0.8625 ± 0.0508
+   Sensibilidad:  0.912 ± 0.054
+   Especificidad: 0.7905 ± 0.0653
+   VPP (Precision): 0.8647 ± 0.0413
+   F1-Score:      0.8863 ± 0.0429
 
 3. Topología: [128]
-   Accuracy:      0.8661 ± 0.0452
-   Sensibilidad:  0.9193 ± 0.054
-   Especificidad: 0.7889 ± 0.0835
-   VPP (Precision): 0.8669 ± 0.0474
-   F1-Score:      0.89 ± 0.0382
+   Accuracy:      0.8706 ± 0.0521
+   Sensibilidad:  0.9207 ± 0.0515
+   Especificidad: 0.7976 ± 0.0844
+   VPP (Precision): 0.8711 ± 0.0495
+   F1-Score:      0.8935 ± 0.0426
 
 4. Topología: [256]
-   Accuracy:      0.8601 ± 0.0396
-   Sensibilidad:  0.9068 ± 0.0563
-   Especificidad: 0.7923 ± 0.0806
-   VPP (Precision): 0.8673 ± 0.0467
-   F1-Score:      0.8837 ± 0.0348
+   Accuracy:      0.8645 ± 0.0374
+   Sensibilidad:  0.9008 ± 0.0473
+   Especificidad: 0.8115 ± 0.0744
+   VPP (Precision): 0.8775 ± 0.0426
+   F1-Score:      0.8863 ± 0.0312
 
 5. Topología: [64, 32]
-   Accuracy:      0.8562 ± 0.0361
-   Sensibilidad:  0.9192 ± 0.0437
-   Especificidad: 0.7645 ± 0.0882
-   VPP (Precision): 0.8539 ± 0.0454
-   F1-Score:      0.8825 ± 0.0291
+   Accuracy:      0.8573 ± 0.0418
+   Sensibilidad:  0.9217 ± 0.034
+   Especificidad: 0.7638 ± 0.0913
+   VPP (Precision): 0.853 ± 0.0521
+   F1-Score:      0.8841 ± 0.0328
 
 6. Topología: [128, 64]
-   Accuracy:      0.874 ± 0.0453
-   Sensibilidad:  0.9316 ± 0.0468
-   Especificidad: 0.7906 ± 0.0842
-   VPP (Precision): 0.8695 ± 0.0484
-   F1-Score:      0.8972 ± 0.0373
+   Accuracy:      0.8623 ± 0.0468
+   Sensibilidad:  0.9301 ± 0.0621
+   Especificidad: 0.7639 ± 0.0933
+   VPP (Precision): 0.8546 ± 0.0503
+   F1-Score:      0.888 ± 0.0391
 
 7. Topología: [256, 128]
-   Accuracy:      0.8618 ± 0.0399
-   Sensibilidad:  0.9379 ± 0.0415
-   Especificidad: 0.7512 ± 0.0936
-   VPP (Precision): 0.8506 ± 0.0493
-   F1-Score:      0.8892 ± 0.0316
+   Accuracy:      0.8514 ± 0.0501
+   Sensibilidad:  0.9176 ± 0.0833
+   Especificidad: 0.7555 ± 0.0973
+   VPP (Precision): 0.8523 ± 0.052
+   F1-Score:      0.8717 ± 0.0616
 
 8. Topología: [128, 128]
-   Accuracy:      0.8574 ± 0.0379
-   Sensibilidad:  0.9147 ± 0.0398
-   Especificidad: 0.7741 ± 0.0908
-   VPP (Precision): 0.8596 ± 0.0496
-   F1-Score:      0.8829 ± 0.0304
+   Accuracy:      0.8499 ± 0.0452
+   Sensibilidad:  0.9193 ± 0.0617
+   Especificidad: 0.7489 ± 0.0971
+   VPP (Precision): 0.8475 ± 0.0469
+   F1-Score:      0.8784 ± 0.039
 
 └──────────────────────────────────────────────────────────┘
 
 ┌─ MEJOR TOPOLOGÍA (por F1-score) ────────────────────────┐
-│ Configuración: [128, 64]
-│ Accuracy:      0.874 ± 0.0453
-│ Sensibilidad:  0.9316 ± 0.0468
-│ Especificidad: 0.7906 ± 0.0842
-│ VPP:           0.8695 ± 0.0484
-│ F1-Score:      0.8972 ± 0.0373
+│ Configuración: [128]
+│ Accuracy:      0.8706 ± 0.0521
+│ Sensibilidad:  0.9207 ± 0.0515
+│ Especificidad: 0.7976 ± 0.0844
+│ VPP:           0.8711 ± 0.0495
+│ F1-Score:      0.8935 ± 0.0426
 └──────────────────────────────────────────────────────────┘
 
 ┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ────────────────┐
       Predicho: Gato  Predicho: Perro
-Real: Gato    89.2          23.8
-Real: Perro   11.2          152.8
+Real: Gato    90.0          23.0
+Real: Perro   13.0          151.0
 └──────────────────────────────────────────────────────────┘
 
 ------------------------------------------------------------
@@ -168,8 +168,8 @@ CONFIGURACIONES PROBADAS: 8
 
 ┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐
       Predicho: Gato  Predicho: Perro
-Real: Gato    89.2          23.8
-Real: Perro   11.2          152.8
+Real: Gato    90.0          23.0
+Real: Perro   13.0          151.0
 └──────────────────────────────────────────────────────────┘
 
 ------------------------------------------------------------
@@ -184,8 +184,23 @@ Mejor k según F1-score: 9
 
 ┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐
       Predicho: Gato  Predicho: Perro
-Real: Gato    89.2          23.8
-Real: Perro   11.2          152.8
+Real: Gato    90.0          23.0
+Real: Perro   13.0          151.0
+└──────────────────────────────────────────────────────────┘
+
+------------------------------------------------------------
+
+╔════════════════════════════════════════════════════════════╗
+║  MODELO: ÁRBOLES DE DECISIÓN
+╚════════════════════════════════════════════════════════════╝
+
+PROFUNDIDADES PROBADAS: 6
+Mejor profundidad: 4
+
+┌─ MATRIZ DE CONFUSIÓN ────────────────────────────────────┐
+      Predicho: Gato  Predicho: Perro
+Real: Gato    90.0          23.0
+Real: Perro   13.0          151.0
 └──────────────────────────────────────────────────────────┘
 
 ------------------------------------------------------------

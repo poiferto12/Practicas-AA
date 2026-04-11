@@ -17,7 +17,7 @@ function dome_modelCrossValidation(inputs, targets, cvIndices; nodes=[2,4,6,8,10
 
     for n in nodes
         modelType = :DoME
-        hyperparameters = Dict("numNodes" => n)
+        hyperparameters = Dict("maximumNodes" => n)
 
         res = modelCrossValidation(modelType, hyperparameters, (inputs, targets), cvIndices)
         results[n] = res
