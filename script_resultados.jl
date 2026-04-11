@@ -159,7 +159,79 @@ catch e
 end
 
 # ============================================================================
-# SECCIÓN 6: GENERAR REPORTE EN ARCHIVO .TXT
+# SECCIÓN 6: EJECUTAR DECISION TREE
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  EJECUTANDO: Decision Tree              │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    if isfile("aproxDecisionTree.jl")
+        include("aproxDecisionTree.jl")
+        
+        try
+            if !isempty(results)
+                push!(modelos_ejecutados, "DecisionTree")
+                resultados_globales["DecisionTree"] = (results, best_depth, best_conf_matrix)
+                println("\n✓ Árboles de Decisión ejecutados correctamente\n")
+            else
+                println("✗ No se generaron resultados en aproxDecisionTree.jl\n")
+            end
+        catch err
+            if isa(err, UndefVarError)
+                println("✗ No se generaron resultados en aproxDecisionTree.jl\n")
+            else
+                throw(err)
+            end
+        end
+    else
+        println("✗ Archivo no encontrado: aproxDecisionTree.jl\n")
+    end
+catch e
+    println("✗ Error en Decision Tree: ")
+    println("  $(typeof(e)): $(e)\n")
+end
+
+# ============================================================================
+# SECCIÓN 7: EJECUTAR DoME
+# ============================================================================
+
+println("┌─────────────────────────────────────────┐")
+println("│  EJECUTANDO: DoME                       │")
+println("└─────────────────────────────────────────┘")
+println()
+
+try
+    if isfile("aproxDoME.jl")
+        include("aproxDoME.jl")
+        
+        try
+            if !isempty(results)
+                push!(modelos_ejecutados, "DoME")
+                resultados_globales["DoME"] = (results, best_nodes, best_conf_matrix)
+                println("\n✓ DoME ejecutado correctamente\n")
+            else
+                println("✗ No se generaron resultados en aproxDoME.jl\n")
+            end
+        catch err
+            if isa(err, UndefVarError)
+                println("✗ No se generaron resultados en aproxDoME.jl\n")
+            else
+                throw(err)
+            end
+        end
+    else
+        println("✗ Archivo no encontrado: aproxDoME.jl\n")
+    end
+catch e
+    println("✗ Error en DoME: ")
+    println("  $(typeof(e)): $(e)\n")
+end
+
+# ============================================================================
+# SECCIÓN 8: GENERAR REPORTE EN ARCHIVO .TXT
 # ============================================================================
 
 println()
@@ -305,6 +377,58 @@ else
             write(io, "Real: Perro   $(round(knn_conf_matrix[2,1], digits=1))          $(round(knn_conf_matrix[2,2], digits=1))\n")
         else
             write(io, "$(knn_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        write(io, "\n" * "-"^60 * "\n")
+    end
+
+    # ========================================================================
+    # SECCIÓN DECISION TREE
+    # ========================================================================
+
+    if in("DecisionTree", modelos_ejecutados)
+        (dt_results, dt_best_depth, dt_conf_matrix) = resultados_globales["DecisionTree"]
+    
+        write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  MODELO: ÁRBOLES DE DECISIÓN\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+    
+        write(io, "PROFUNDIDADES PROBADAS: $(length(dt_results))\n")
+        write(io, "Mejor profundidad: $dt_best_depth\n")
+    
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN ────────────────────────────────────┐\n")
+        if typeof(dt_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(dt_conf_matrix[1,1], digits=1))          $(round(dt_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(dt_conf_matrix[2,1], digits=1))          $(round(dt_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(dt_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        write(io, "\n" * "-"^60 * "\n")
+    end
+
+    # ========================================================================
+    # SECCIÓN DoME
+    # ========================================================================
+
+    if in("DoME", modelos_ejecutados)
+        (dome_results, dome_best_nodes, dome_conf_matrix) = resultados_globales["DoME"]
+    
+        write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
+        write(io, "║  MODELO: DoME\n")
+        write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
+    
+        write(io, "NODOS PROBADOS: $(length(dome_results))\n")
+        write(io, "Mejor número de nodos: $dome_best_nodes\n")
+    
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN ────────────────────────────────────┐\n")
+        if typeof(dome_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(dome_conf_matrix[1,1], digits=1))          $(round(dome_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(dome_conf_matrix[2,1], digits=1))          $(round(dome_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(dome_conf_matrix)\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
