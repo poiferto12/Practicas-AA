@@ -25,9 +25,9 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     ]
     
     # Parametros comuns para entrenar (Ter solo 1 descomentado)
-    learning_rate = 0.01; num_executions = 20; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.005; num_executions = 30; max_epochs = 500; min_loss = 0.1;
-    #learning_rate = 0.05; num_executions = 30; max_epochs = 500; min_loss = 0.05;
+    learning_rate = 0.01; num_executions = 5; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.005; num_executions = 5; max_epochs = 500; min_loss = 0.1;
+    #learning_rate = 0.05; num_executions = 5; max_epochs = 500; min_loss = 0.05;
     
     # Almacenar resultados
     results = [];
@@ -90,6 +90,7 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     best_idx = argmax([r.f1[1] for r in results]);
     best_topology = results[best_idx].topology;
     best_f1 = results[best_idx].f1;
+    best_conf_matrix = results[best_idx].conf_matrix;
     
     println("========= Resultados Finales =========");
     println("Mejor topologia (por F1-score): ", best_topology);
@@ -99,8 +100,11 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     println("VPP (Precision): ", results[best_idx].precision[1], " ± ", results[best_idx].precision[2]);
     println("F1-Score: ", best_f1[1], " ± ", best_f1[2]);
     println();
+    println("Matriz de confusión (mejor topología):");
+    display(best_conf_matrix);
+    println();
     
-    return results, best_idx;
+    return results, best_idx, best_conf_matrix;
 end
 
 # Programa principal
@@ -117,4 +121,4 @@ end
 println("Ejecutando experimentos con Redes Neuronales...");
 println();
 
-results, best_idx = ejecutarModeloANN(inputs, targets, cvIndices);
+results, best_idx, best_conf_matrix = ejecutarModeloANN(inputs, targets, cvIndices);

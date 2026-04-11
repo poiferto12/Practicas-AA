@@ -62,7 +62,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "ANN")
-                resultados_globales["ANN"] = (results, best_idx)
+                resultados_globales["ANN"] = (results, best_idx, best_conf_matrix)
                 println("\n✓ Redes Neuronales ejecutadas correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxANN.jl\n")
@@ -99,7 +99,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "SVM")
-                resultados_globales["SVM"] = (results, best_config)
+                resultados_globales["SVM"] = (results, best_config, best_conf_matrix)
                 println("\n✓ SVM ejecutado correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxSVM.jl\n")
@@ -136,7 +136,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "kNN")
-                resultados_globales["kNN"] = (results, best_k)
+                resultados_globales["kNN"] = (results, best_k, best_conf_matrix)
                 println("\n✓ kNN ejecutado correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxKNN.jl\n")
@@ -198,7 +198,7 @@ else
     # ========================================================================
     
     if in("ANN", modelos_ejecutados)
-        (ann_results, ann_best_idx) = resultados_globales["ANN"]
+        (ann_results, ann_best_idx, ann_conf_matrix) = resultados_globales["ANN"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: REDES NEURONALES ARTIFICIALES (ANN)\n")
@@ -227,6 +227,19 @@ else
         write(io, "│ VPP:           $(round(best_ann.precision[1], digits=4)) ± $(round(best_ann.precision[2], digits=4))\n")
         write(io, "│ F1-Score:      $(round(best_ann.f1[1], digits=4)) ± $(round(best_ann.f1[2], digits=4))\n")
         write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ────────────────┐\n")
+        
+        # Si ann_conf_matrix es una matriz 2D (formato típico)
+        if typeof(ann_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(ann_conf_matrix[1,1], digits=1))          $(round(ann_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(ann_conf_matrix[2,1], digits=1))          $(round(ann_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(ann_conf_matrix)\n")
+        end
+        
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
     
@@ -235,7 +248,7 @@ else
     # ========================================================================
     
     if in("SVM", modelos_ejecutados)
-        (svm_results, svm_best_config) = resultados_globales["SVM"]
+        (svm_results, svm_best_config, svm_conf_matrix) = resultados_globales["SVM"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: MÁQUINAS DE VECTORES DE SOPORTE (SVM)\n")
@@ -258,6 +271,16 @@ else
         write(io, "│ Kernel: $(svm_best_config["kernel"])\n")
         write(io, "│ C:      $(svm_best_config["C"])\n")
         write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
+        if typeof(svm_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(svm_conf_matrix[1,1], digits=1))          $(round(svm_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(svm_conf_matrix[2,1], digits=1))          $(round(svm_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(svm_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
     
@@ -266,7 +289,7 @@ else
     # ========================================================================
     
     if in("kNN", modelos_ejecutados)
-        (knn_results, knn_best_k) = resultados_globales["kNN"]
+        (knn_results, knn_best_k, knn_conf_matrix) = resultados_globales["kNN"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: k-NEAREST NEIGHBORS (kNN)\n")
@@ -274,6 +297,16 @@ else
         
         write(io, "VALORES DE k PROBADOS: $(length(knn_results))\n\n")
         write(io, "Mejor k según F1-score: $knn_best_k\n")
+        
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
+        if typeof(knn_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(knn_conf_matrix[1,1], digits=1))          $(round(knn_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(knn_conf_matrix[2,1], digits=1))          $(round(knn_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(knn_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
     

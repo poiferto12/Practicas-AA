@@ -26,6 +26,7 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
     results = Dict()
     best_f1 = -Inf
     best_k = ks[1]
+    best_conf_matrix = nothing
 
     println("==================================================")
     println("Resultados kNN")
@@ -41,6 +42,7 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
         if res[7][1] > best_f1   # F1 medio
             best_f1 = res[7][1]
             best_k = k
+            best_conf_matrix = res[8]
         end
     end
 
@@ -55,7 +57,7 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
     end
 
     println("\nMejor k según F1-score: ", best_k)
-    return results, best_k
+    return results, best_k, best_conf_matrix
 end
 
 # Ejecutar directamente al hacer include:

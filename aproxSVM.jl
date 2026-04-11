@@ -23,6 +23,7 @@ function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
     results = Vector{Tuple{Dict{String,Any}, Any}}()
     best_f1 = -Inf
     best_config = configs[1]
+    best_conf_matrix = nothing
 
     println("==================================================")
     println("Resultados SVM")
@@ -37,6 +38,7 @@ function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
         if res[7][1] > best_f1
             best_f1 = res[7][1]
             best_config = config
+            best_conf_matrix = res[8]
         end
 
         println("F1 = ", round(res[7][1], digits=4), " ± ", round(res[7][2], digits=4))
@@ -53,7 +55,7 @@ function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
     end
 
     println("\nMejor configuración según F1-score: ", best_config)
-    return results, best_config
+    return results, best_config, best_conf_matrix
 end
 
 # Ejecutar directamente al hacer include:
