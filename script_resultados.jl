@@ -62,7 +62,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "ANN")
-                resultados_globales["ANN"] = (results, best_idx, best_conf_matrix)
+                resultados_globales["ANN"] = (results, best_idx, best_conf_matrix, train_accuracy, train_recall, train_specificity, train_precision, train_f1, train_conf_matrix)
                 println("\n✓ Redes Neuronales ejecutadas correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxANN.jl\n")
@@ -99,7 +99,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "SVM")
-                resultados_globales["SVM"] = (results, best_config, best_conf_matrix)
+                resultados_globales["SVM"] = (results, best_config, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix)
                 println("\n✓ SVM ejecutado correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxSVM.jl\n")
@@ -270,7 +270,7 @@ else
     # ========================================================================
     
     if in("ANN", modelos_ejecutados)
-        (ann_results, ann_best_idx, ann_conf_matrix) = resultados_globales["ANN"]
+        (ann_results, ann_best_idx, ann_conf_matrix, ann_train_accuracy, ann_train_recall, ann_train_specificity, ann_train_precision, ann_train_f1, ann_train_conf_matrix) = resultados_globales["ANN"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: REDES NEURONALES ARTIFICIALES (ANN)\n")
@@ -312,6 +312,24 @@ else
         end
         
         write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
+        write(io, "│ Accuracy:      $(round(ann_train_accuracy[1], digits=4))\n")
+        write(io, "│ Sensibilidad:  $(round(ann_train_recall[1], digits=4))\n")
+        write(io, "│ Especificidad: $(round(ann_train_specificity[1], digits=4))\n")
+        write(io, "│ VPP:           $(round(ann_train_precision[1], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(ann_train_f1[1], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
+        if typeof(ann_train_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(ann_train_conf_matrix[1,1], digits=1))          $(round(ann_train_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(ann_train_conf_matrix[2,1], digits=1))          $(round(ann_train_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(ann_train_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
     
@@ -320,7 +338,7 @@ else
     # ========================================================================
     
     if in("SVM", modelos_ejecutados)
-        (svm_results, svm_best_config, svm_conf_matrix) = resultados_globales["SVM"]
+        (svm_results, svm_best_config, svm_conf_matrix, svm_train_accuracy, svm_train_f1, svm_train_conf_matrix) = resultados_globales["SVM"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: MÁQUINAS DE VECTORES DE SOPORTE (SVM)\n")
@@ -351,6 +369,21 @@ else
             write(io, "Real: Perro   $(round(svm_conf_matrix[2,1], digits=1))          $(round(svm_conf_matrix[2,2], digits=1))\n")
         else
             write(io, "$(svm_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
+        write(io, "│ Accuracy:      $(round(svm_train_accuracy[1], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(svm_train_f1[1], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
+        if typeof(svm_train_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(svm_train_conf_matrix[1,1], digits=1))          $(round(svm_train_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(svm_train_conf_matrix[2,1], digits=1))          $(round(svm_train_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(svm_train_conf_matrix)\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")

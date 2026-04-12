@@ -55,7 +55,16 @@ function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
     end
 
     println("\nMejor configuración según F1-score: ", best_config)
-    return results, best_config, best_conf_matrix
+    
+    # Entrenar con TODOS los datos para obtener métricas de training
+    println("\nEntrenando modelo final SVM con todos los datos...");
+    train_metrics = modelCrossValidation(:SVC, best_config, (inputs, targets), collect(1:size(inputs, 1)));
+    
+    train_accuracy = train_metrics[1];
+    train_f1 = train_metrics[7];
+    train_conf_matrix = train_metrics[8];
+    
+    return results, best_config, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
 # Ejecutar directamente al hacer include:
@@ -65,4 +74,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_config = svm_modelCrossValidation(inputs, targets, cvIndices)
+results, best_config, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix = svm_modelCrossValidation(inputs, targets, cvIndices)
