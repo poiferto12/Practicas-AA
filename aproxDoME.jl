@@ -50,4 +50,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_nodes = dome_modelCrossValidation(inputs, targets, cvIndices)
+results, best_nodes, best_conf_matrix = dome_modelCrossValidation(inputs, targets, cvIndices)

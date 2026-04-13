@@ -67,4 +67,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_k = knn_modelCrossValidation(inputs, targets, cvIndices)
+results, best_k, best_conf_matrix = knn_modelCrossValidation(inputs, targets, cvIndices)

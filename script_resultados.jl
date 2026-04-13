@@ -401,7 +401,22 @@ else
         write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
         
         write(io, "VALORES DE k PROBADOS: $(length(knn_results))\n\n")
-        write(io, "Mejor k según F1-score: $knn_best_k\n")
+        
+        write(io, "┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐\n")
+        for k in sort(collect(keys(knn_results)))
+            res = knn_results[k]
+            write(io, "\nk=$k:\n")
+            write(io, "   Accuracy:      $(round(res[1][1], digits=4)) ± $(round(res[1][2], digits=4))\n")
+            write(io, "   Sensibilidad:  $(round(res[3][1], digits=4)) ± $(round(res[3][2], digits=4))\n")
+            write(io, "   Especificidad: $(round(res[4][1], digits=4)) ± $(round(res[4][2], digits=4))\n")
+            write(io, "   VPP (Precision): $(round(res[5][1], digits=4)) ± $(round(res[5][2], digits=4))\n")
+            write(io, "   F1-Score:      $(round(res[7][1], digits=4)) ± $(round(res[7][2], digits=4))\n")
+        end
+        write(io, "\n└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MEJOR k (por F1-score) ───────────────────────────────────┐\n")
+        write(io, "│ k = $knn_best_k\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(knn_conf_matrix) <: AbstractMatrix
@@ -426,10 +441,25 @@ else
         write(io, "║  MODELO: ÁRBOLES DE DECISIÓN\n")
         write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
     
-        write(io, "PROFUNDIDADES PROBADAS: $(length(dt_results))\n")
-        write(io, "Mejor profundidad: $dt_best_depth\n")
+        write(io, "PROFUNDIDADES PROBADAS: $(length(dt_results))\n\n")
+        
+        write(io, "┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐\n")
+        for depth in sort(collect(keys(dt_results)))
+            res = dt_results[depth]
+            write(io, "\nProfundidad=$depth:\n")
+            write(io, "   Accuracy:      $(round(res[1][1], digits=4)) ± $(round(res[1][2], digits=4))\n")
+            write(io, "   Sensibilidad:  $(round(res[3][1], digits=4)) ± $(round(res[3][2], digits=4))\n")
+            write(io, "   Especificidad: $(round(res[4][1], digits=4)) ± $(round(res[4][2], digits=4))\n")
+            write(io, "   VPP (Precision): $(round(res[5][1], digits=4)) ± $(round(res[5][2], digits=4))\n")
+            write(io, "   F1-Score:      $(round(res[7][1], digits=4)) ± $(round(res[7][2], digits=4))\n")
+        end
+        write(io, "\n└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MEJOR PROFUNDIDAD (por F1-score) ────────────────────────┐\n")
+        write(io, "│ max_depth = $dt_best_depth\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
     
-        write(io, "\n┌─ MATRIZ DE CONFUSIÓN ────────────────────────────────────┐\n")
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(dt_conf_matrix) <: AbstractMatrix
             write(io, "      Predicho: Gato  Predicho: Perro\n")
             write(io, "Real: Gato    $(round(dt_conf_matrix[1,1], digits=1))          $(round(dt_conf_matrix[1,2], digits=1))\n")
@@ -452,10 +482,25 @@ else
         write(io, "║  MODELO: DoME\n")
         write(io, "╚════════════════════════════════════════════════════════════╝\n\n")
     
-        write(io, "NODOS PROBADOS: $(length(dome_results))\n")
-        write(io, "Mejor número de nodos: $dome_best_nodes\n")
+        write(io, "NODOS PROBADOS: $(length(dome_results))\n\n")
+        
+        write(io, "┌─ RESULTADOS DETALLADOS ─────────────────────────────────┐\n")
+        for n in sort(collect(keys(dome_results)))
+            res = dome_results[n]
+            write(io, "\nNodos=$n:\n")
+            write(io, "   Accuracy:      $(round(res[1][1], digits=4)) ± $(round(res[1][2], digits=4))\n")
+            write(io, "   Sensibilidad:  $(round(res[3][1], digits=4)) ± $(round(res[3][2], digits=4))\n")
+            write(io, "   Especificidad: $(round(res[4][1], digits=4)) ± $(round(res[4][2], digits=4))\n")
+            write(io, "   VPP (Precision): $(round(res[5][1], digits=4)) ± $(round(res[5][2], digits=4))\n")
+            write(io, "   F1-Score:      $(round(res[7][1], digits=4)) ± $(round(res[7][2], digits=4))\n")
+        end
+        write(io, "\n└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MEJOR CONFIGURACIÓN (por F1-score) ──────────────────────┐\n")
+        write(io, "│ maximumNodes = $dome_best_nodes\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
     
-        write(io, "\n┌─ MATRIZ DE CONFUSIÓN ────────────────────────────────────┐\n")
+        write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(dome_conf_matrix) <: AbstractMatrix
             write(io, "      Predicho: Gato  Predicho: Perro\n")
             write(io, "Real: Gato    $(round(dome_conf_matrix[1,1], digits=1))          $(round(dome_conf_matrix[1,2], digits=1))\n")

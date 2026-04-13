@@ -51,4 +51,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_depth = dt_modelCrossValidation(inputs, targets, cvIndices)
+results, best_depth, best_conf_matrix = dt_modelCrossValidation(inputs, targets, cvIndices)
