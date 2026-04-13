@@ -57,7 +57,17 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
     end
 
     println("\nMejor k según F1-score: ", best_k)
-    return results, best_k, best_conf_matrix
+    
+    # Calcular métricas de entrenamiento en todo el dataset
+    all_indices = collect(1:size(inputs, 1))
+    train_hyperparameters = Dict("n_neighbors" => best_k)
+    train_metrics = modelCrossValidation(:KNeighborsClassifier, train_hyperparameters, (inputs, targets), all_indices)
+    
+    train_accuracy = train_metrics[1]
+    train_f1 = train_metrics[7]
+    train_conf_matrix = train_metrics[8]
+    
+    return results, best_k, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
 # Ejecutar directamente al hacer include:
@@ -67,4 +77,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_k, best_conf_matrix = knn_modelCrossValidation(inputs, targets, cvIndices)
+results, best_k, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix = knn_modelCrossValidation(inputs, targets, cvIndices)

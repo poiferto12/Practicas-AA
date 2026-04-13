@@ -42,7 +42,17 @@ function dt_modelCrossValidation(inputs, targets, cvIndices; depths=[2,4,6,8,10,
     end
 
     println("\nMejor profundidad: ", best_depth)
-    return results, best_depth, best_conf_matrix
+    
+    # Calcular métricas de entrenamiento en todo el dataset
+    all_indices = collect(1:size(inputs, 1))
+    train_hyperparameters = Dict("max_depth" => best_depth)
+    train_metrics = modelCrossValidation(:DecisionTreeClassifier, train_hyperparameters, (inputs, targets), all_indices)
+    
+    train_accuracy = train_metrics[1]
+    train_f1 = train_metrics[7]
+    train_conf_matrix = train_metrics[8]
+    
+    return results, best_depth, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
 # Ejecutar
@@ -51,4 +61,4 @@ if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     cvIndices = crossvalidation(targets, 10)
 end
 
-results, best_depth, best_conf_matrix = dt_modelCrossValidation(inputs, targets, cvIndices)
+results, best_depth, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix = dt_modelCrossValidation(inputs, targets, cvIndices)

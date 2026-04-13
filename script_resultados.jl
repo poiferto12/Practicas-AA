@@ -136,7 +136,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "kNN")
-                resultados_globales["kNN"] = (results, best_k, best_conf_matrix)
+                resultados_globales["kNN"] = (results, best_k, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix)
                 println("\n✓ kNN ejecutado correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxKNN.jl\n")
@@ -174,7 +174,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "DecisionTree")
-                resultados_globales["DecisionTree"] = (results, best_depth, best_conf_matrix)
+                resultados_globales["DecisionTree"] = (results, best_depth, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix)
                 println("\n✓ Árboles de Decisión ejecutados correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxDecisionTree.jl\n")
@@ -210,7 +210,7 @@ try
         try
             if !isempty(results)
                 push!(modelos_ejecutados, "DoME")
-                resultados_globales["DoME"] = (results, best_nodes, best_conf_matrix)
+                resultados_globales["DoME"] = (results, best_nodes, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix)
                 println("\n✓ DoME ejecutado correctamente\n")
             else
                 println("✗ No se generaron resultados en aproxDoME.jl\n")
@@ -394,7 +394,7 @@ else
     # ========================================================================
     
     if in("kNN", modelos_ejecutados)
-        (knn_results, knn_best_k, knn_conf_matrix) = resultados_globales["kNN"]
+        (knn_results, knn_best_k, knn_conf_matrix, knn_train_accuracy, knn_train_f1, knn_train_conf_matrix) = resultados_globales["kNN"]
         
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: k-NEAREST NEIGHBORS (kNN)\n")
@@ -427,6 +427,21 @@ else
             write(io, "$(knn_conf_matrix)\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
+        write(io, "│ Accuracy:      $(round(knn_train_accuracy[1], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(knn_train_f1[1], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
+        if typeof(knn_train_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(knn_train_conf_matrix[1,1], digits=1))          $(round(knn_train_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(knn_train_conf_matrix[2,1], digits=1))          $(round(knn_train_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(knn_train_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
 
@@ -435,7 +450,7 @@ else
     # ========================================================================
 
     if in("DecisionTree", modelos_ejecutados)
-        (dt_results, dt_best_depth, dt_conf_matrix) = resultados_globales["DecisionTree"]
+        (dt_results, dt_best_depth, dt_conf_matrix, dt_train_accuracy, dt_train_f1, dt_train_conf_matrix) = resultados_globales["DecisionTree"]
     
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: ÁRBOLES DE DECISIÓN\n")
@@ -468,6 +483,21 @@ else
             write(io, "$(dt_conf_matrix)\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
+        write(io, "│ Accuracy:      $(round(dt_train_accuracy[1], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(dt_train_f1[1], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
+        if typeof(dt_train_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(dt_train_conf_matrix[1,1], digits=1))          $(round(dt_train_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(dt_train_conf_matrix[2,1], digits=1))          $(round(dt_train_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(dt_train_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
     end
 
@@ -476,7 +506,7 @@ else
     # ========================================================================
 
     if in("DoME", modelos_ejecutados)
-        (dome_results, dome_best_nodes, dome_conf_matrix) = resultados_globales["DoME"]
+        (dome_results, dome_best_nodes, dome_conf_matrix, dome_train_accuracy, dome_train_f1, dome_train_conf_matrix) = resultados_globales["DoME"]
     
         write(io, "\n╔════════════════════════════════════════════════════════════╗\n")
         write(io, "║  MODELO: DoME\n")
@@ -507,6 +537,21 @@ else
             write(io, "Real: Perro   $(round(dome_conf_matrix[2,1], digits=1))          $(round(dome_conf_matrix[2,2], digits=1))\n")
         else
             write(io, "$(dome_conf_matrix)\n")
+        end
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
+        write(io, "│ Accuracy:      $(round(dome_train_accuracy[1], digits=4))\n")
+        write(io, "│ F1-Score:      $(round(dome_train_f1[1], digits=4))\n")
+        write(io, "└──────────────────────────────────────────────────────────┘\n")
+        
+        write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
+        if typeof(dome_train_conf_matrix) <: AbstractMatrix
+            write(io, "      Predicho: Gato  Predicho: Perro\n")
+            write(io, "Real: Gato    $(round(dome_train_conf_matrix[1,1], digits=1))          $(round(dome_train_conf_matrix[1,2], digits=1))\n")
+            write(io, "Real: Perro   $(round(dome_train_conf_matrix[2,1], digits=1))          $(round(dome_train_conf_matrix[2,2], digits=1))\n")
+        else
+            write(io, "$(dome_train_conf_matrix)\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
