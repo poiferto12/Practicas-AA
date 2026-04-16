@@ -16,6 +16,37 @@ include("extractFeatures.jl");
 nothing  # Suprimir salida de includes
 
 # ============================================================================
+# FUNCIÓN AUXILIAR: Formatear matrices de confusión
+# ============================================================================
+
+function formatConfusionMatrix(cm::AbstractMatrix)
+    """Formatea una matriz de confusión para mostrarla de forma legible"""
+    classes = ["cats", "dogs", "cows", "frogs"]
+    n_classes = size(cm, 1)
+    
+    lines = String[]
+    
+    # Encabezado
+    header = "     " 
+    for j in 1:n_classes
+        header *= rpad(" Pred: $(uppercase(classes[j][1:min(3, length(classes[j]))]))", 15)
+    end
+    push!(lines, header)
+    
+    # Filas
+    for i in 1:n_classes
+        line = "Real: $(rpad(classes[i], 4))"
+        for j in 1:n_classes
+            val = round(cm[i, j], digits=1)
+            line *= rpad(" $val", 15)
+        end
+        push!(lines, line)
+    end
+    
+    return join(lines, "\n")
+end
+
+# ============================================================================
 # SECCIÓN 1: CARGAR DATOS (UNA SOLA VEZ)
 # ============================================================================
 
@@ -301,16 +332,9 @@ else
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ────────────────┐\n")
-        
-        # Si ann_conf_matrix es una matriz 2D (formato típico)
         if typeof(ann_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(ann_conf_matrix[1,1], digits=1))          $(round(ann_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(ann_conf_matrix[2,1], digits=1))          $(round(ann_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(ann_conf_matrix)\n")
+            write(io, formatConfusionMatrix(ann_conf_matrix) * "\n")
         end
-        
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
         write(io, "\n┌─ MÉTRICAS DE TRAINING (Todo el dataset) ─────────────────┐\n")
@@ -323,11 +347,7 @@ else
         
         write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
         if typeof(ann_train_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(ann_train_conf_matrix[1,1], digits=1))          $(round(ann_train_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(ann_train_conf_matrix[2,1], digits=1))          $(round(ann_train_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(ann_train_conf_matrix)\n")
+            write(io, formatConfusionMatrix(ann_train_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
@@ -364,11 +384,7 @@ else
         
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(svm_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(svm_conf_matrix[1,1], digits=1))          $(round(svm_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(svm_conf_matrix[2,1], digits=1))          $(round(svm_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(svm_conf_matrix)\n")
+            write(io, formatConfusionMatrix(svm_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
@@ -379,11 +395,7 @@ else
         
         write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
         if typeof(svm_train_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(svm_train_conf_matrix[1,1], digits=1))          $(round(svm_train_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(svm_train_conf_matrix[2,1], digits=1))          $(round(svm_train_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(svm_train_conf_matrix)\n")
+            write(io, formatConfusionMatrix(svm_train_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
@@ -420,11 +432,7 @@ else
         
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(knn_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(knn_conf_matrix[1,1], digits=1))          $(round(knn_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(knn_conf_matrix[2,1], digits=1))          $(round(knn_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(knn_conf_matrix)\n")
+            write(io, formatConfusionMatrix(knn_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
@@ -435,11 +443,7 @@ else
         
         write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
         if typeof(knn_train_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(knn_train_conf_matrix[1,1], digits=1))          $(round(knn_train_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(knn_train_conf_matrix[2,1], digits=1))          $(round(knn_train_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(knn_train_conf_matrix)\n")
+            write(io, formatConfusionMatrix(knn_train_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
@@ -476,11 +480,7 @@ else
     
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(dt_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(dt_conf_matrix[1,1], digits=1))          $(round(dt_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(dt_conf_matrix[2,1], digits=1))          $(round(dt_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(dt_conf_matrix)\n")
+            write(io, formatConfusionMatrix(dt_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
@@ -491,11 +491,7 @@ else
         
         write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
         if typeof(dt_train_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(dt_train_conf_matrix[1,1], digits=1))          $(round(dt_train_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(dt_train_conf_matrix[2,1], digits=1))          $(round(dt_train_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(dt_train_conf_matrix)\n")
+            write(io, formatConfusionMatrix(dt_train_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")
@@ -532,11 +528,7 @@ else
     
         write(io, "\n┌─ MATRIZ DE CONFUSIÓN (promedio 10-fold) ──────────────────┐\n")
         if typeof(dome_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(dome_conf_matrix[1,1], digits=1))          $(round(dome_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(dome_conf_matrix[2,1], digits=1))          $(round(dome_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(dome_conf_matrix)\n")
+            write(io, formatConfusionMatrix(dome_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         
@@ -547,11 +539,7 @@ else
         
         write(io, "\n┌─ MATRIZ CONFUSIÓN TRAINING ───────────────────────────────┐\n")
         if typeof(dome_train_conf_matrix) <: AbstractMatrix
-            write(io, "      Predicho: Gato  Predicho: Perro\n")
-            write(io, "Real: Gato    $(round(dome_train_conf_matrix[1,1], digits=1))          $(round(dome_train_conf_matrix[1,2], digits=1))\n")
-            write(io, "Real: Perro   $(round(dome_train_conf_matrix[2,1], digits=1))          $(round(dome_train_conf_matrix[2,2], digits=1))\n")
-        else
-            write(io, "$(dome_train_conf_matrix)\n")
+            write(io, formatConfusionMatrix(dome_train_conf_matrix) * "\n")
         end
         write(io, "└──────────────────────────────────────────────────────────┘\n")
         write(io, "\n" * "-"^60 * "\n")

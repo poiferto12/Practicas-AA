@@ -119,15 +119,20 @@ end
 function loadDataset(datasetFolder::String)
     catFiles = filter(f -> endswith(f, ".wav"), readdir(joinpath(datasetFolder, "cats"), join=true))
     dogFiles = filter(f -> endswith(f, ".wav"), readdir(joinpath(datasetFolder, "dogs"), join=true))
+    cowFiles = filter(f -> endswith(f, ".wav"), readdir(joinpath(datasetFolder, "Cow"), join=true))
+    frogFiles = filter(f -> endswith(f, ".wav"), readdir(joinpath(datasetFolder, "frogs"), join=true))
 
-    println("Cargando dataset: $(length(catFiles)) gatos, $(length(dogFiles)) perros...")
+    println("Cargando dataset: $(length(catFiles)) gatos, $(length(dogFiles)) perros, $(length(cowFiles)) vacas, $(length(frogFiles)) ranas...")
 
     catFeatures = extractFeatures.(catFiles)
     dogFeatures = extractFeatures.(dogFiles)
+    cowFeatures = extractFeatures.(cowFiles)
+    frogFeatures = extractFeatures.(frogFiles)
 
-    inputs  = Float32.(collect(hcat([catFeatures; dogFeatures]...)'))
-    targets = [trues(length(catFiles)); falses(length(dogFiles))]
+    inputs  = Float32.(collect(hcat([catFeatures; dogFeatures; cowFeatures; frogFeatures]...)'))
+    targets = [repeat(["cats"], length(catFiles)); repeat(["dogs"], length(dogFiles)); repeat(["cows"], length(cowFiles)); repeat(["frogs"], length(frogFiles))]
 
     println("Tamaño de la matriz de entradas: ", size(inputs, 1), "x", size(inputs, 2), " de tipo ", typeof(inputs))
+    println("Clases: gatos ($(length(catFiles))), perros ($(length(dogFiles))), vacas ($(length(cowFiles))), ranas ($(length(frogFiles)))")
     return inputs, targets
 end
