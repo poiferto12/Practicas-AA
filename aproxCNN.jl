@@ -1009,27 +1009,35 @@ for (name, builder) in architectures
 end
 
 # Buscar la mejor arquitectura por F1 medio
-bestName = ""
-bestBuilder = nothing
-bestF1 = -1.0
+function getBestArchitecture(results, architectures)
 
-for (name, res) in results
+    bestName = ""
+    bestF1 = -1.0
 
-    if res["f1_mean"] > bestF1
-
-        bestF1 = res["f1_mean"]
-        bestName = name
-
+    for (name, res) in results
+        if res["f1_mean"] > bestF1
+            bestF1 = res["f1_mean"]
+            bestName = name
+        end
     end
+
+    bestBuilder = nothing
+
+    for (name, builder) in architectures
+        if name == bestName
+            bestBuilder = builder
+            break
+        end
+    end
+
+    if bestBuilder === nothing
+        error("No se ha encontrado la función constructora de la mejor arquitectura.")
+    end
+
+    return bestName, bestBuilder, bestF1
 end
 
-for (name, builder) in architectures
-
-    if name == bestName
-        bestBuilder = builder
-        break
-    end
-end
+bestName, bestBuilder, bestF1 = getBestArchitecture(results, architectures)
 
 println("\n================================================")
 println("MEJOR ARQUITECTURA: $bestName")
