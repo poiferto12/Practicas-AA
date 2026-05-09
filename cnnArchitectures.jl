@@ -7,7 +7,6 @@ using Flux
 function buildCnn1(numClasses)
 
     Chain(
-
         Conv((3,1), 1=>8, relu, pad=(1,0)),
         MaxPool((2,1)),
 
