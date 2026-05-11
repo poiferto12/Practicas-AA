@@ -9,9 +9,7 @@ using Dates
 
 include("cnnArchitectures.jl")
 
-# ================================================================
 # CONFIGURACIÓN
-# ================================================================
 
 Random.seed!(1234)
 
@@ -25,10 +23,6 @@ const LEARNING_RATE = 1e-3
 
 const TARGET_LENGTH = 4096
 const RANDOM_SEED = 1234
-
-# ================================================================
-# CLASES
-# ================================================================
 
 classes = sort(filter(
     x -> isdir(joinpath(DATASET_PATH, x)),
@@ -44,9 +38,7 @@ if numClasses == 0
     error("No se han detectado clases. Revisa que exista la carpeta '$DATASET_PATH' y que dentro tenga una carpeta por clase.")
 end
 
-# ================================================================
-# FFT 1D
-# ================================================================
+# FFT
 
 function audioToFFT(path::String)
 
@@ -61,13 +53,13 @@ function audioToFFT(path::String)
     # Transformada de Fourier
     fftSignal = abs.(fft(audio))
 
-    # Nos quedamos con la mitad positiva del espectro
+    # Quedamos camitad positiva do espectro
     fftSignal = fftSignal[1:div(length(fftSignal), 2)]
 
     # Escala logarítmica para reducir diferencias de magnitud
     fftSignal .= log.(fftSignal .+ 1f-6)
 
-    # Normalización min-max por muestra
+    # Normalización min-max
     fftSignal .-= minimum(fftSignal)
 
     maxv = maximum(fftSignal)
@@ -92,9 +84,6 @@ function audioToFFT(path::String)
 
     end
 
-    # Formato para CNN 2D:
-    # alto x ancho x canales x batch
-    # aquí cada muestra queda como TARGET_LENGTH x 1 x 1
     return reshape(
         Float32.(fftSignal),
         TARGET_LENGTH,
@@ -104,9 +93,7 @@ function audioToFFT(path::String)
 
 end
 
-# ================================================================
-# CARGA DEL DATASET
-# ================================================================
+# CARGA DE DATASET
 
 function loadDataset()
 
@@ -164,9 +151,8 @@ function loadDataset()
 
 end
 
-# ================================================================
 # VALIDACIÓN CRUZADA ESTRATIFICADA
-# ================================================================
+
 
 function stratifiedKfolds(y::Vector{String}, classes::Vector{String}, k::Int)
 
@@ -207,18 +193,7 @@ function stratifiedKfolds(y::Vector{String}, classes::Vector{String}, k::Int)
 
 end
 
-# ================================================================
-# SPLIT TRAIN / VALIDACIÓN DENTRO DE CADA FOLD
-# ================================================================
-#
-# En cada fold:
-#   - 10% queda como test por la validación cruzada.
-#   - Del 90% restante se separa aproximadamente 1/9 para validación.
-# Resultado aproximado:
-#   - 80% entrenamiento
-#   - 10% validación
-#   - 10% test
-# ================================================================
+# VALIDACIÓN DENTRO DE CADA FOLD
 
 function trainValidationSplit(trainValIdx::Vector{Int}, y::Vector{String}, classes::Vector{String})
 
@@ -231,7 +206,7 @@ function trainValidationSplit(trainValIdx::Vector{Int}, y::Vector{String}, class
 
         Random.shuffle!(classIdx)
 
-        # Como trainValIdx es aproximadamente el 90%,
+        # Como trainValIdx vale aproximadamente un 90%,
         # tomar 1/9 de este conjunto equivale a un 10% total.
         nVal = max(1, round(Int, length(classIdx) / 9))
 
@@ -252,9 +227,7 @@ function trainValidationSplit(trainValIdx::Vector{Int}, y::Vector{String}, class
 
 end
 
-# ================================================================
 # MATRIZ DE CONFUSIÓN
-# ================================================================
 
 function confusionMatrix(yTrue, yPred, classes)
 
@@ -276,10 +249,7 @@ function confusionMatrix(yTrue, yPred, classes)
 
 end
 
-# ================================================================
 # MÉTRICAS
-# ================================================================
-
 function metricsFromConfusionMatrix(cm)
 
     total = sum(cm)
@@ -334,9 +304,7 @@ function metricsFromConfusionMatrix(cm)
 
 end
 
-# ================================================================
 # CREAR MINI-BATCHES
-# ================================================================
 
 function makeBatches(X, yOH; batchSize::Int=BATCH_SIZE)
 
@@ -369,10 +337,7 @@ function makeBatches(X, yOH; batchSize::Int=BATCH_SIZE)
 
 end
 
-# ================================================================
 # VALIDATION LOSS
-# ================================================================
-
 function validationLoss(model, Xval, yValOH)
 
     Flux.testmode!(model)
@@ -385,9 +350,7 @@ function validationLoss(model, Xval, yValOH)
 
 end
 
-# ================================================================
 # ENTRENAMIENTO CNN CON VALIDACIÓN Y EARLY STOPPING
-# ================================================================
 
 function trainCNN(model, Xtrain, yTrainOH, Xval, yValOH)
 
@@ -468,10 +431,6 @@ function trainCNN(model, Xtrain, yTrainOH, Xval, yValOH)
 
 end
 
-# ================================================================
-# PREDICCIÓN
-# ================================================================
-
 function predictLabels(model, X)
 
     Flux.testmode!(model)
@@ -482,10 +441,7 @@ function predictLabels(model, X)
 
 end
 
-# ================================================================
-# CROSS VALIDATION CNN
-# ================================================================
-
+# CROSS VALIDATION
 function crossValidationCNN(modelBuilder, X, y)
 
     folds = stratifiedKfolds(
@@ -609,9 +565,7 @@ function crossValidationCNN(modelBuilder, X, y)
 
 end
 
-# ================================================================
-# ENTRENAMIENTO FINAL DEL MEJOR MODELO SOBRE TODO EL DATASET
-# ================================================================
+# ENTRENAMIENTO FINAL DEL MEJOR MODELO
 
 function trainBestOnFullDataset(modelBuilder, X, y)
 
@@ -665,9 +619,6 @@ function trainBestOnFullDataset(modelBuilder, X, y)
 
 end
 
-# ================================================================
-# IMPRIMIR MATRIZ DE CONFUSIÓN EN TXT
-# ================================================================
 
 function printConfusionMatrix(io, cm, classes)
 
@@ -702,9 +653,7 @@ function printConfusionMatrix(io, cm, classes)
 
 end
 
-# ================================================================
-# GUARDAR REPORTE TXT
-# ================================================================
+# GARDAR REPORTE.TXT
 
 function saveReport(results, bestTrainingMetrics=nothing)
 
@@ -952,9 +901,8 @@ function saveReport(results, bestTrainingMetrics=nothing)
 
 end
 
-# ================================================================
+
 # MAIN
-# ================================================================
 
 println("\nCargando dataset...\n")
 

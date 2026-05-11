@@ -12,7 +12,6 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     println("=== Modelo 1: Redes Neuronales Artificiales ===");
     println();
     
-    # 8 topologías a probar 
     topologies = [
         [32],           # 1 capa oculta con 32 neuronas
         [64],           # 1 capa oculta con 64 neuronas
@@ -92,7 +91,6 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     best_f1 = results[best_idx].f1;
     best_conf_matrix = results[best_idx].conf_matrix;
     
-    # Entrenar con TODOS los datos para obtener métricas de training
     println("\n========= Entrenando modelo final con todos los datos =========");
     hyperparameters_final = Dict(
         "topology" => best_topology,
@@ -102,13 +100,13 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
         "learningRate" => learning_rate
     );
     
-    # Crear índices de train (todos) y test (vacío) para obtener métricas de training
+    # Crear índices de train e test para obtener métricas de training
     all_indices = collect(1:size(inputs, 1));
     train_metrics = modelCrossValidation(
         :ANN,
         hyperparameters_final,
         (inputs, targets),
-        all_indices  # Todos los datos juntos
+        all_indices 
     );
     
     train_accuracy = train_metrics[1];
@@ -140,9 +138,9 @@ function ejecutarModeloANN(inputs, targets, crossValidationIndices)
     return results, best_idx, best_conf_matrix, train_accuracy, train_recall, train_specificity, train_precision, train_f1, train_conf_matrix;
 end
 
-# Programa principal
-# Verifica si datos ya están cargados (por script_resultados.jl)
-# Si no, los carga de forma independiente
+#Main
+# Verifica si datos xa estan cargados (por script_resultados.jl)
+# Si nn, cargaos de forma independiente
 if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     println("Cargando datos...");
     inputs, targets = loadDataset("./dataset");

@@ -1,6 +1,3 @@
-# aproxSVM.jl
-# Implementación experimental de SVM usando modelCrossValidation de firmas.jl
-
 using Random
 Random.seed!(1234)
 
@@ -8,7 +5,6 @@ include("firmas.jl")
 include("extractFeatures.jl")
 
 function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
-    # Configuraciones sencillas para evitar bloqueos
     configs = [
     Dict("C" => 0.1,  "kernel" => "linear"),
     Dict("C" => 1.0,  "kernel" => "linear"),
@@ -67,7 +63,6 @@ function svm_modelCrossValidation(inputs, targets, cvIndices; kfolds=10)
     return results, best_config, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
-# Ejecutar directamente al hacer include:
 # Verifica si datos ya están cargados (por script_resultados.jl)
 if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     inputs, targets = loadDataset("./dataset")

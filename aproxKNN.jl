@@ -1,6 +1,3 @@
-# aproxKNN.jl
-# Implementación experimental de kNN clásico usando modelCrossValidation de firmas.jl
-
 using Random
 Random.seed!(1234)
 
@@ -58,7 +55,6 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
 
     println("\nMejor k según F1-score: ", best_k)
     
-    # Calcular métricas de entrenamiento en todo el dataset
     all_indices = collect(1:size(inputs, 1))
     train_hyperparameters = Dict("n_neighbors" => best_k)
     train_metrics = modelCrossValidation(:KNeighborsClassifier, train_hyperparameters, (inputs, targets), all_indices)
@@ -70,7 +66,6 @@ function knn_modelCrossValidation(inputs, targets, cvIndices; ks=[1, 3, 5, 7, 9,
     return results, best_k, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
-# Ejecutar directamente al hacer include:
 # Verifica si datos ya están cargados (por script_resultados.jl)
 if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     inputs, targets = loadDataset("./dataset")

@@ -1,11 +1,3 @@
-# script_resultados.jl
-# Script maestro modular para ejecutar todos los modelos y generar reporte
-# 
-# Características:
-# - Modular: ejecuta solo lo que esté disponible
-# - Exporta resultados a archivo de texto formateado
-# - Genera resúmenes por modelo y comparativas
-
 using Random
 using Dates
 Random.seed!(1234)
@@ -15,9 +7,7 @@ include("extractFeatures.jl");
 
 nothing  # Suprimir salida de includes
 
-# ============================================================================
-# FUNCIÓN AUXILIAR: Formatear matrices de confusión
-# ============================================================================
+# Funcion pa formatear matrices de confusión
 
 function formatConfusionMatrix(cm::AbstractMatrix)
     """Formatea una matriz de confusión para mostrarla de forma legible"""
@@ -46,9 +36,7 @@ function formatConfusionMatrix(cm::AbstractMatrix)
     return join(lines, "\n")
 end
 
-# ============================================================================
-# SECCIÓN 1: CARGAR DATOS (UNA SOLA VEZ)
-# ============================================================================
+# CARGAR DATOS
 
 println("┌─────────────────────────────────────────┐")
 println("│  CARGANDO DATASET                       │")
@@ -69,16 +57,12 @@ catch e
     exit(1)
 end
 
-# ============================================================================
-# SECCIÓN 2: DICCIONARIO PARA ALMACENAR TODOS LOS RESULTADOS
-# ============================================================================
-
 resultados_globales = Dict{String, Any}()
 modelos_ejecutados = String[]
 
-# ============================================================================
-# SECCIÓN 3: EJECUTAR REDES NEURONALES
-# ============================================================================
+
+# EJECUTAR REDES NEURONALES
+
 
 println("┌─────────────────────────────────────────┐")
 println("│  EJECUTANDO: Redes Neuronales          │")
@@ -113,9 +97,7 @@ catch e
     println("  $(typeof(e)): $(e)\n")
 end
 
-# ============================================================================
-# SECCIÓN 4: EJECUTAR SVM
-# ============================================================================
+# EJECUTAR SVM
 
 println("┌─────────────────────────────────────────┐")
 println("│  EJECUTANDO: SVM                        │")
@@ -150,9 +132,8 @@ catch e
     println("  $(typeof(e)): $(e)\n")
 end
 
-# ============================================================================
-# SECCIÓN 5: EJECUTAR kNN (si existe)
-# ============================================================================
+
+# EJECUTAR kNN
 
 println("┌─────────────────────────────────────────┐")
 println("│  EJECUTANDO: kNN                        │")
@@ -189,9 +170,7 @@ catch e
     println("  (Continuando con los demás modelos...)\n")
 end
 
-# ============================================================================
-# SECCIÓN 6: EJECUTAR DECISION TREE
-# ============================================================================
+# EJECUTAR DECISION TREE
 
 println("┌─────────────────────────────────────────┐")
 println("│  EJECUTANDO: Decision Tree              │")
@@ -225,9 +204,7 @@ catch e
     println("  $(typeof(e)): $(e)\n")
 end
 
-# ============================================================================
-# SECCIÓN 7: EJECUTAR DoME
-# ============================================================================
+# EJECUTAR DoME
 
 println("┌─────────────────────────────────────────┐")
 println("│  EJECUTANDO: DoME                       │")
@@ -261,9 +238,7 @@ catch e
     println("  $(typeof(e)): $(e)\n")
 end
 
-# ============================================================================
-# SECCIÓN 8: GENERAR REPORTE EN ARCHIVO .TXT
-# ============================================================================
+# GENERAR REPORTE.TXT
 
 println()
 println("="^60)
@@ -296,9 +271,8 @@ else
         end
         write(io, "\n" * "="^60 * "\n\n")
     
-    # ========================================================================
     # SECCIÓN ANN
-    # ========================================================================
+    
     
     if in("ANN", modelos_ejecutados)
         (ann_results, ann_best_idx, ann_conf_matrix, ann_train_accuracy, ann_train_recall, ann_train_specificity, ann_train_precision, ann_train_f1, ann_train_conf_matrix) = resultados_globales["ANN"]
@@ -353,10 +327,9 @@ else
         write(io, "\n" * "-"^60 * "\n")
     end
     
-    # ========================================================================
+
     # SECCIÓN SVM
-    # ========================================================================
-    
+
     if in("SVM", modelos_ejecutados)
         (svm_results, svm_best_config, svm_conf_matrix, svm_train_accuracy, svm_train_f1, svm_train_conf_matrix) = resultados_globales["SVM"]
         
@@ -401,9 +374,8 @@ else
         write(io, "\n" * "-"^60 * "\n")
     end
     
-    # ========================================================================
-    # SECCIÓN kNN (si existe)
-    # ========================================================================
+    # SECCIÓN kNN
+    
     
     if in("kNN", modelos_ejecutados)
         (knn_results, knn_best_k, knn_conf_matrix, knn_train_accuracy, knn_train_f1, knn_train_conf_matrix) = resultados_globales["kNN"]
@@ -449,9 +421,7 @@ else
         write(io, "\n" * "-"^60 * "\n")
     end
 
-    # ========================================================================
     # SECCIÓN DECISION TREE
-    # ========================================================================
 
     if in("DecisionTree", modelos_ejecutados)
         (dt_results, dt_best_depth, dt_conf_matrix, dt_train_accuracy, dt_train_f1, dt_train_conf_matrix) = resultados_globales["DecisionTree"]
@@ -497,9 +467,7 @@ else
         write(io, "\n" * "-"^60 * "\n")
     end
 
-    # ========================================================================
     # SECCIÓN DoME
-    # ========================================================================
 
     if in("DoME", modelos_ejecutados)
         (dome_results, dome_best_nodes, dome_conf_matrix, dome_train_accuracy, dome_train_f1, dome_train_conf_matrix) = resultados_globales["DoME"]
@@ -551,7 +519,7 @@ else
     write(io, "═"^60 * "\n")
     end
     
-    println("✓ Reporte guardado en: REPORTE_RESULTADOS.txt")
+    println("Reporte guardado en: REPORTE_RESULTADOS.txt")
     println()
     println("Modelos ejecutados: ", join(modelos_ejecutados, ", "))
     println("Archivo listo para ser procesado en la memoria LaTeX")

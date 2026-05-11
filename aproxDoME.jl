@@ -42,7 +42,6 @@ function dome_modelCrossValidation(inputs, targets, cvIndices; nodes=[2,4,6,8,10
 
     println("\nMejor número de nodos: ", best_nodes)
     
-    # Calcular métricas de entrenamiento en todo el dataset
     all_indices = collect(1:size(inputs, 1))
     train_hyperparameters = Dict("maximumNodes" => best_nodes)
     train_metrics = modelCrossValidation(:DoME, train_hyperparameters, (inputs, targets), all_indices)
@@ -54,7 +53,6 @@ function dome_modelCrossValidation(inputs, targets, cvIndices; nodes=[2,4,6,8,10
     return results, best_nodes, best_conf_matrix, train_accuracy, train_f1, train_conf_matrix
 end
 
-# Ejecutar
 if !(@isdefined inputs) || !(@isdefined targets) || !(@isdefined cvIndices)
     inputs, targets = loadDataset("./dataset")
     cvIndices = crossvalidation(targets, 10)
